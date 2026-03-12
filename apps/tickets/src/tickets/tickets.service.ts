@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { NotAuthorizedError, NotFoundError } from '@org/errors';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { Ticket } from './schema/ticket.schema';
+import { Ticket } from './schemas/ticket.schema';
 
 @Injectable()
 export class TicketsService {

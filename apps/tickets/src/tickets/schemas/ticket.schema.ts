@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ versionKey: 'version', optimisticConcurrency: true })
 export class Ticket {
@@ -20,3 +20,5 @@ export class Ticket {
   @Prop()
   orderId!: string;
 }
+
+export const TicketSchema = SchemaFactory.createForClass(Ticket);
