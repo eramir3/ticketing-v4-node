@@ -8,6 +8,9 @@
     },
     {
       "path": "./libs/common"
+    },
+    {
+      "path": "./libs/errors"
     }
   ]
 }

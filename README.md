@@ -12,10 +12,10 @@
 `nx generate @nx/nest:app --name=orders --directory=apps/orders`
 
 ## libs
-`nx generate @nx/node:library --name=transport --directory=libs/transport`
 `nx generate @nx/node:library --name=common --directory=libs/common`
-`nx generate @nx/node:library --name=contracts --directory=libs/contracts`
 `nx generate @nx/node:library --name=errors --directory=libs/errors`
+`nx generate @nx/node:library --name=contracts --directory=libs/contracts`
+`nx generate @nx/node:library --name=transport --directory=libs/transport`
 `nx generate @nx/nest:library --name=elasticsearch --directory=libs/elasticsearch --buildable`
 After generating an app/lib run: `nx sync`
 
