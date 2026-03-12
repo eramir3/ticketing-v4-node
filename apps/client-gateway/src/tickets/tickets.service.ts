@@ -1,26 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { CreateTicketInput } from './dto/create-ticket.input';
 import { UpdateTicketInput } from './dto/update-ticket.input';
+import { TicketsClient } from './tickets.client';
 
 @Injectable()
 export class TicketsService {
-  create(createTicketInput: CreateTicketInput) {
-    return 'This action adds a new ticket';
+  constructor(private readonly ticketsClient: TicketsClient) { }
+
+  create(createTicketInput: CreateTicketInput, userId: string) {
+    return this.ticketsClient.create({
+      ...createTicketInput,
+      userId,
+    });
   }
 
   findAll() {
-    return `This action returns all tickets`;
+    return this.ticketsClient.findAll();
   }
 
   findOne(id: string) {
-    return `This action returns a #${id} ticket`;
+    return this.ticketsClient.findOne(id);
   }
 
-  update(id: string, updateTicketInput: UpdateTicketInput) {
-    return `This action updates a #${id} ticket`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} ticket`;
+  update(id: string, updateTicketInput: UpdateTicketInput, userId: string) {
+    return this.ticketsClient.update(id, {
+      ...updateTicketInput,
+      userId,
+    });
   }
 }

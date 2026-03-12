@@ -18,6 +18,7 @@ import { TicketsController } from './tickets.controller';
     }),
     MongooseModule.forFeature([{ name: Ticket.name, schema: TicketSchema }]),
   ],
-  providers: [TicketsController, TicketsService],
+  controllers: [TicketsController],
+  providers: [TicketsService],
 })
 export class TicketsModule { }

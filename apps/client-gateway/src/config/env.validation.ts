@@ -20,6 +20,20 @@ const envSchema = z.looseObject({
       .trim()
       .min(1, `${ENV_KEYS.AUTH_SERVICE} environment variable must be defined`)
   ),
+  [ENV_KEYS.TICKETS_SERVICE]: z.preprocess(
+    (value) => (value == null ? '' : value),
+    z
+      .string()
+      .trim()
+      .min(1, `${ENV_KEYS.TICKETS_SERVICE} environment variable must be defined`)
+  ),
+  [ENV_KEYS.JWT_KEY]: z.preprocess(
+    (value) => (value == null ? '' : value),
+    z
+      .string()
+      .trim()
+      .min(1, `${ENV_KEYS.JWT_KEY} environment variable must be defined`)
+  ),
 });
 
 export function validateEnv(env: Record<string, string | undefined>) {

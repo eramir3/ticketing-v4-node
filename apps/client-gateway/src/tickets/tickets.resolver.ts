@@ -1,4 +1,6 @@
+import { UseGuards } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { AuthGuard, CurrentUser, type TicketingUser } from '@org/common';
 import { TicketsService } from './tickets.service';
 import { Ticket } from './entities/ticket.entity';
 import { CreateTicketInput } from './dto/create-ticket.input';
@@ -9,8 +11,12 @@ export class TicketsResolver {
   constructor(private readonly ticketsService: TicketsService) { }
 
   @Mutation(() => Ticket)
-  createTicket(@Args('createTicketInput') createTicketInput: CreateTicketInput) {
-    return this.ticketsService.create(createTicketInput);
+  @UseGuards(AuthGuard)
+  createTicket(
+    @Args('createTicketInput') createTicketInput: CreateTicketInput,
+    @CurrentUser() user: TicketingUser
+  ) {
+    return this.ticketsService.create(createTicketInput, user.id);
   }
 
   @Query(() => [Ticket], { name: 'tickets' })
@@ -24,12 +30,11 @@ export class TicketsResolver {
   }
 
   @Mutation(() => Ticket)
-  updateTicket(@Args('updateTicketInput') updateTicketInput: UpdateTicketInput) {
-    return this.ticketsService.update(updateTicketInput.id, updateTicketInput);
-  }
-
-  @Mutation(() => Ticket)
-  removeTicket(@Args('id', { type: () => Int }) id: number) {
-    return this.ticketsService.remove(id);
+  @UseGuards(AuthGuard)
+  updateTicket(
+    @Args('updateTicketInput') updateTicketInput: UpdateTicketInput,
+    @CurrentUser() user: TicketingUser
+  ) {
+    return this.ticketsService.update(updateTicketInput.id, updateTicketInput, user.id);
   }
 }
