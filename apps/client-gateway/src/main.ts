@@ -1,5 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { CustomExceptionFilter } from '@org/common';
+import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,9 +13,10 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: errors => new RequestValidationError(errors),
     }),
   );
-  //app.useGlobalFilters(new GatewayExceptionFilter());
+  app.useGlobalFilters(new CustomExceptionFilter());
 
   const port = process.env.PORT!;
   await app.listen(port);
