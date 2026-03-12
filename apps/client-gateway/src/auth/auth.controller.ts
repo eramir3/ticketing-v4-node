@@ -1,5 +1,16 @@
 import { type Request } from 'express';
-import { Body, Controller, HttpCode, HttpStatus, Req, Post, Get, All, UseGuards } from '@nestjs/common';
+import {
+  All,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { NotFoundError } from '@org/errors'
 import { AuthService } from './auth.service';
 import { SignUpDto } from '../auth/dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
@@ -37,6 +48,6 @@ export class AuthController {
   @All('*')
   @HttpCode(HttpStatus.NOT_FOUND)
   handleNotFound() {
-    throw new Error('Not found');
+    throw new NotFoundError();
   }
 }

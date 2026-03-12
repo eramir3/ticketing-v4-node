@@ -1,8 +1,5 @@
 export const ENV_KEYS = {
+  PORT: 'PORT',
   MONGO_URI: 'MONGO_URI',
-  AUTH_SERVICE: 'AUTH_SERVICE',
-} as const;
-
-export const DI_TOKENS = {
-  AUTH_SERVICE: 'AUTH_SERVICE',
+  JWT_KEY: 'JWT_KEY',
 } as const;

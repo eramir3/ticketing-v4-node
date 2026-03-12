@@ -1,42 +1,28 @@
-import { Logger, type ValidationError, ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { RequestValidationError } from '@org/errors';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { ENV_KEYS } from './config/env.keys';
 
 async function bootstrap() {
-  Logger.log('Starting auth microservice...');
-
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const globalPrefix = 'api';
+  const port = configService.getOrThrow<string>(ENV_KEYS.PORT);
+
+  app.setGlobalPrefix(globalPrefix);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      exceptionFactory: (errors: ValidationError[]) => new RequestValidationError(errors),
     }),
   );
 
-  await app.listen();
-  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+  await app.listen(port);
+  Logger.log(
+    `Auth service is running on: http://localhost:${port}/${globalPrefix}`
+  );
 }
 
 bootstrap();
-
-
-// import { Logger } from '@nestjs/common';
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app/app.module';
-
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-//   const globalPrefix = 'api';
-//   app.setGlobalPrefix(globalPrefix);
-//   const port = process.env.PORT || 3000;
-//   await app.listen(port);
-//   Logger.log(
-//     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
-//   );
-// }
-
-// bootstrap();

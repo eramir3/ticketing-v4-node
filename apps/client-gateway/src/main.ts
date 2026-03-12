@@ -1,6 +1,5 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -12,7 +11,6 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      exceptionFactory: (errors) => new RequestValidationError(errors),
     }),
   );
   //app.useGlobalFilters(new GatewayExceptionFilter());
@@ -25,7 +23,6 @@ async function bootstrap() {
   // Logger.log(
   //   `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
   // );
-  //Logger.log(`NATS JetStream connected to: ${process.env.NATS_SERVER}`);
 }
 
 bootstrap();

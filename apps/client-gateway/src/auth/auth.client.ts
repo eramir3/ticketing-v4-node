@@ -1,5 +1,9 @@
 import axios, { type AxiosInstance } from 'axios';
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type TicketingUser } from '@org/common';
 import { SignInDto } from './dto/signin.dto';
@@ -22,20 +26,40 @@ export class AuthClient {
   }
 
   async signUp(signUpDto: SignUpDto): Promise<AuthResponse> {
-    const { data } = await this.httpClient.post<AuthResponse>(
-      '/auth/signup',
-      signUpDto
-    );
+    try {
+      const { data } = await this.httpClient.post<AuthResponse>(
+        '/auth/signup',
+        signUpDto
+      );
 
-    return data;
+      return data;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async signIn(signInDto: SignInDto): Promise<AuthResponse> {
-    const { data } = await this.httpClient.post<AuthResponse>(
-      '/auth/signin',
-      signInDto
-    );
+    try {
+      const { data } = await this.httpClient.post<AuthResponse>(
+        '/auth/signin',
+        signInDto
+      );
 
-    return data;
+      return data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  private handleError(error: unknown): never {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+
+      throw new ServiceUnavailableException('Auth service unavailable');
+    }
+
+    throw error;
   }
 }
