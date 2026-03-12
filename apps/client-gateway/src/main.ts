@@ -23,9 +23,9 @@ async function bootstrap() {
   Logger.log(
     `🚀 Client Gateway is running on: http://localhost:${port}/${globalPrefix}`
   );
-  // Logger.log(
-  //   `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
-  // );
+  Logger.log(
+    `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
+  );
 }
 
 bootstrap();

@@ -1,0 +1,31 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Ticket {
+  id: ID!
+  title: String!
+  price: Float!
+  userId: ID!
+}
+
+type Query {
+  tickets: [Ticket!]!
+  ticket(id: String!): Ticket!
+}
+
+type Mutation {
+  createTicket(createTicketInput: CreateTicketInput!): Ticket!
+  updateTicket(updateTicketInput: UpdateTicketInput!): Ticket!
+}
+
+input CreateTicketInput {
+  title: String!
+  price: Float!
+}
+
+input UpdateTicketInput {
+  title: String
+  price: Float
+  id: String!
+}
