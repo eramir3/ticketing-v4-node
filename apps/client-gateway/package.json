@@ -2,11 +2,18 @@
   "name": "@org/client-gateway",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "dev": "npx nx serve client-gateway",
+    "test": "npx nx test client-gateway"
+  },
   "nx": {
     "name": "client-gateway",
     "targets": {
       "build": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "webpack-cli build",
           "args": [
@@ -65,7 +72,7 @@
         ],
         "options": {
           "buildTarget": "client-gateway:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": true
         },
         "configurations": {
           "development": {
@@ -76,8 +83,16 @@
           }
         }
       },
-      "test": {
+      "docker": {
+        "executor": "nx:run-commands",
         "options": {
+          "command": "minikube image build -t ticketing-v3-client-gateway -f apps/client-gateway/Dockerfile.dev . --alsologtostderr -v=1"
+        }
+      },
+      "test": {
+        "executor": "@nx/jest:jest",
+        "options": {
+          "jestConfig": "apps/client-gateway/jest.config.cts",
           "passWithNoTests": true
         }
       }
@@ -86,6 +101,7 @@
   "dependencies": {
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
+    "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",

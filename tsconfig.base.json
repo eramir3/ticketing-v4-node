@@ -21,19 +21,6 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "paths": {
-      "@auth/*": [
-        "apps/auth/src/*"
-      ],
-      "@org/common": [
-        "libs/common/src/index.ts"
-      ],
-      "@org/contracts": [
-        "libs/contracts/src/index.ts"
-      ],
-      "@org/transport": [
-        "libs/transport/src/index.ts"
-      ],
-    }
+    "paths": {}
   }
 }

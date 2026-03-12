@@ -3,7 +3,8 @@ const { join } = require('path');
 
 module.exports = {
   output: {
-    path: join(__dirname, 'dist'),
+    // Match Nx's default expected output for run-commands builds
+    path: join(__dirname, '../../dist/apps/client-gateway'),
     clean: true,
     ...(process.env.NODE_ENV !== 'production' && {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
@@ -15,7 +16,6 @@ module.exports = {
       compiler: 'tsc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: ['./src/assets'],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: false,
