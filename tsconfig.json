@@ -11,6 +11,12 @@
     },
     {
       "path": "./libs/errors"
+    },
+    {
+      "path": "./apps/auth-e2e"
+    },
+    {
+      "path": "./apps/auth"
     }
   ]
 }

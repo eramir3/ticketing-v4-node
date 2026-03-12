@@ -1,0 +1,56 @@
+name: ticketing-v3
+services:
+
+  client-gateway:
+    build:
+      context: .
+      dockerfile: apps/client-gateway/Dockerfile.dev
+    image: ticketing-v3-client-gateway
+    container_name: ticketing-client-gateway
+    depends_on:
+      - nats
+    env_file:
+      - ./apps/client-gateway/.env
+    command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,contracts,errors,transport && npm exec -- nx daemon --start && npm exec -- nx serve client-gateway"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+
+  auth:
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile.dev
+    image: ticketing-v3-auth
+    container_name: ticketing-auth
+    depends_on:
+      nats:
+        condition: service_started
+      auth-mongo:
+        condition: service_healthy
+    env_file:
+      - ./apps/auth/.env
+    command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,contracts,errors,transport && npm exec -- nx daemon --start && npm exec -- nx serve auth"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  auth-mongo:
+    image: mongo:7.0
+    container_name: ticketing-auth-mongo
+    environment:
+      MONGO_INITDB_DATABASE: auth
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "27017:27017"
+    volumes:
+      - auth-mongo-data:/data/db
+
+volumes:
+  auth-mongo-data:

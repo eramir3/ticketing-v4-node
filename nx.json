@@ -51,7 +51,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/client-gateway-e2e/**/*"]
+      "exclude": ["apps/client-gateway-e2e/**/*", "apps/auth-e2e/**/*"]
     }
   ],
   "targetDefaults": {
