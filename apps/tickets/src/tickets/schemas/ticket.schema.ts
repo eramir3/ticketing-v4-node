@@ -21,4 +21,14 @@ export class Ticket {
   orderId!: string;
 }
 
-export const TicketSchema = SchemaFactory.createForClass(Ticket);
+const TicketSchema = SchemaFactory.createForClass(Ticket);
+
+// Hide sensitive/irrelevant fields when sending JSON responses
+TicketSchema.set('toJSON', {
+  transform(_doc, ret: Record<string, any>) {
+    ret.id = ret._id;
+    delete ret._id;
+  },
+});
+
+export { TicketSchema }

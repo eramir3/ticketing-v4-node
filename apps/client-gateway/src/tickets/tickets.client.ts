@@ -14,6 +14,10 @@ type CreateTicketRequest = CreateTicketInput & {
   userId: string;
 };
 
+type TicketApiResponse = Ticket & {
+  _id?: string;
+};
+
 type UpdateTicketRequest = UpdateTicketInput & {
   userId: string;
 };
@@ -30,7 +34,10 @@ export class TicketsClient {
 
   async create(createTicketDto: CreateTicketRequest): Promise<Ticket> {
     try {
-      const { data } = await this.httpClient.post<Ticket>('/tickets', createTicketDto);
+      const { data } = await this.httpClient.post<TicketApiResponse>(
+        '/tickets',
+        createTicketDto
+      );
       return data;
     } catch (error) {
       this.handleError(error);
@@ -39,7 +46,7 @@ export class TicketsClient {
 
   async findAll(): Promise<Ticket[]> {
     try {
-      const { data } = await this.httpClient.get<Ticket[]>('/tickets');
+      const { data } = await this.httpClient.get<TicketApiResponse[]>('/tickets');
       return data;
     } catch (error) {
       this.handleError(error);
@@ -48,7 +55,7 @@ export class TicketsClient {
 
   async findOne(id: string): Promise<Ticket> {
     try {
-      const { data } = await this.httpClient.get<Ticket>(`/tickets/${id}`);
+      const { data } = await this.httpClient.get<TicketApiResponse>(`/tickets/${id}`);
       return data;
     } catch (error) {
       this.handleError(error);
@@ -57,7 +64,7 @@ export class TicketsClient {
 
   async update(id: string, updateTicketDto: UpdateTicketRequest): Promise<Ticket> {
     try {
-      const { data } = await this.httpClient.patch<Ticket>(
+      const { data } = await this.httpClient.patch<TicketApiResponse>(
         `/tickets/${id}`,
         updateTicketDto
       );

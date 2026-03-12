@@ -14,13 +14,13 @@ export class TicketsService {
   ) { }
 
   async create(createTicketDto: CreateTicketDto) {
-    const ticket = this.ticketModel.create(createTicketDto);
+    const ticket = await this.ticketModel.create(createTicketDto);
     return ticket;
   }
 
-  findAll() {
-    const tickets = this.ticketModel.find({});
-    return tickets
+  async findAll() {
+    const tickets = await this.ticketModel.find({}).exec();
+    return tickets;
   }
 
   async findOne(id: string) {
@@ -33,9 +33,9 @@ export class TicketsService {
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto) {
+  async update(id: string, updateTicketDto: UpdateTicketDto) {
     const ticket = await this.ticketModel
-      .findById(updateTicketDto.id)
+      .findById(id)
       .exec();
     if (!ticket) {
       throw new NotFoundError();
