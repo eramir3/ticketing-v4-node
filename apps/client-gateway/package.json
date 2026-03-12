@@ -99,6 +99,8 @@
     }
   },
   "dependencies": {
+    "@org/common": "*",
+    "@org/errors": "*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/mapped-types": "*",
