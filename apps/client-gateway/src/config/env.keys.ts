@@ -1,5 +1,6 @@
 export const ENV_KEYS = {
   PORT: 'PORT',
+  NATS_SERVER: 'NATS_SERVER',
   AUTH_SERVICE: 'AUTH_SERVICE',
 } as const;
 

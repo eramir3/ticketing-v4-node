@@ -16,17 +16,16 @@ async function bootstrap() {
     }),
   );
   //app.useGlobalFilters(new GatewayExceptionFilter());
-  await app.startAllMicroservices();
 
   const port = process.env.PORT!;
   await app.listen(port);
   Logger.log(
     `🚀 Client Gateway is running on: http://localhost:${port}/${globalPrefix}`
   );
-  Logger.log(
-    `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
-  );
-  Logger.log(`NATS listener connected to: `);
+  // Logger.log(
+  //   `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
+  // );
+  //Logger.log(`NATS JetStream connected to: ${process.env.NATS_SERVER}`);
 }
 
 bootstrap();
