@@ -21,7 +21,7 @@ async function bootstrap() {
 
   await app.listen(port);
   Logger.log(
-    `Auth service is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Auth service is running on: http://localhost:${port}/${globalPrefix}`
   );
 }
 

@@ -1,12 +1,12 @@
-name: ticketing-v4
+name: ticketing-v4-nodejs
 services:
 
   client-gateway:
     build:
       context: .
       dockerfile: apps/client-gateway/Dockerfile.dev
-    image: ticketing-v4-client-gateway
-    container_name: ticketing-client-gateway
+    image: ticketing-v4-client-gateway-js
+    container_name: ticketing-v4-client-gateway-js
     depends_on:
       auth:
         condition: service_started
@@ -25,8 +25,8 @@ services:
     build:
       context: .
       dockerfile: apps/auth/Dockerfile.dev
-    image: ticketing-v4-auth
-    container_name: ticketing-auth
+    image: ticketing-v4-auth-js
+    container_name: ticketing-v4-auth-js
     depends_on:
       auth-mongo:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
 
   auth-mongo:
     image: mongo:7.0
-    container_name: ticketing-auth-mongo
+    container_name: ticketing-v4-auth-mongo-js
     environment:
       MONGO_INITDB_DATABASE: auth
     healthcheck:
