@@ -7,6 +7,7 @@ import { CookieSessionMiddleware, createGraphQLErrorResponsePlugin } from '@org/
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { ApolloServerPlugin } from '@apollo/server';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ApolloServerPlugin } from '@apollo/server';
       graphiql: true,
       plugins: [createGraphQLErrorResponsePlugin() as ApolloServerPlugin<any>],
     }),
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {
