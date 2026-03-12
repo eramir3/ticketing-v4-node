@@ -4,7 +4,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import { AuthClient } from './auth.client';
 
-// req.session.jwt is the storage mechanism; req.jwt is the backend-facing API.
+// req.session.jwt is the storage mechanism; req.jwt is the backend-facing API.// 
 
 @Injectable()
 export class AuthService {
