@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { app } from '../../test/setup';
 
@@ -81,14 +80,16 @@ describe('UsersController  Signin (e2e)', () => {
         email: 'test@test.com',
         password: 'password'
       })
-      .expect(400);
+      .expect(401);
   });
 
   it('fails when an incorrect password is supplied', async () => {
+    const email = 'test@test.com';
+
     await request(app.getHttpServer())
       .post('/api/auth/signup')
       .send({
-        email: 'test@test.com',
+        email,
         password: 'password'
       })
       .expect(201);
@@ -96,12 +97,9 @@ describe('UsersController  Signin (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/auth/signin')
       .send({
-        email: 'test@test.com',
+        email,
         password: 'aslkdfjalskdfj'
       })
-      .expect(400);
+      .expect(401);
   });
-
 });
-
-
