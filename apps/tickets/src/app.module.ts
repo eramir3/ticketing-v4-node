@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CookieSessionMiddleware } from '@org/common';
 import { validateEnv } from './config/env.validation';
 import { ENV_KEYS } from './config/env.keys';
 import { TicketsModule } from './tickets/tickets.module';
@@ -25,5 +26,8 @@ import { TicketsModule } from './tickets/tickets.module';
     TicketsModule,
   ],
 })
-export class AppModule {
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CookieSessionMiddleware).forRoutes('*');
+  }
 }

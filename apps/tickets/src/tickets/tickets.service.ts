@@ -13,8 +13,11 @@ export class TicketsService {
     private readonly ticketModel: Model<Ticket>,
   ) { }
 
-  async create(createTicketDto: CreateTicketDto) {
-    const ticket = await this.ticketModel.create(createTicketDto);
+  async create(createTicketDto: CreateTicketDto, userId: string) {
+    const ticket = await this.ticketModel.create({
+      ...createTicketDto,
+      userId,
+    });
     return ticket;
   }
 
@@ -33,7 +36,7 @@ export class TicketsService {
     return ticket;
   }
 
-  async update(id: string, updateTicketDto: UpdateTicketDto) {
+  async update(id: string, updateTicketDto: UpdateTicketDto, userId: string) {
     const ticket = await this.ticketModel
       .findById(id)
       .exec();
@@ -45,7 +48,7 @@ export class TicketsService {
     //   throw new BadRequestError('Cannot edit a reserved ticket')
     // }
 
-    if (ticket.userId !== updateTicketDto.userId) {
+    if (ticket.userId !== userId) {
       throw new NotAuthorizedError();
     }
 
