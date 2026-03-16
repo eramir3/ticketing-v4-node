@@ -11,7 +11,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
 
-function getRequestCarrier(context: ExecutionContext): AuthCarrier | null {
+function getCarrier(context: ExecutionContext): AuthCarrier | null {
   const type = context.getType<'http' | 'graphql'>();
 
   if (type === 'http') {
@@ -26,32 +26,6 @@ function getRequestCarrier(context: ExecutionContext): AuthCarrier | null {
   }
 
   return null;
-}
-
-function getRpcCarrier(context: ExecutionContext): AuthCarrier | null {
-  const rpc = context.switchToRpc();
-
-  const data = rpc.getData();
-  if (isRecord(data)) {
-    return data as AuthCarrier;
-  }
-
-  const ctx = rpc.getContext();
-  if (isRecord(ctx)) {
-    return ctx as AuthCarrier;
-  }
-
-  return null;
-}
-
-function getCarrier(context: ExecutionContext): AuthCarrier | null {
-  const type = context.getType<'http' | 'graphql' | 'rpc'>();
-
-  if (type === 'rpc') {
-    return getRpcCarrier(context);
-  }
-
-  return getRequestCarrier(context);
 }
 
 export function getCurrentUserFromContext(
