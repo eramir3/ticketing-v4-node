@@ -2,14 +2,12 @@ import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { app } from '../../test/setup';
 
-const buildEmail = () => `${randomUUID()}@test.com`;
-
 describe('UsersController  Signup (e2e)', () => {
   it('returns a 201 on successful signup', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/signup')
       .send({
-        email: buildEmail(),
+        email: 'test@test.com',
         password: 'password'
       });
 
@@ -55,7 +53,7 @@ describe('UsersController  Signup (e2e)', () => {
   });
 
   it('disallows duplicate emails', async () => {
-    const email = buildEmail();
+    const email = 'test@test.com';
 
     await request(app.getHttpServer())
       .post('/api/auth/signup')
@@ -74,3 +72,36 @@ describe('UsersController  Signup (e2e)', () => {
       .expect(400);
   });
 });
+
+describe('UsersController  Signin (e2e)', () => {
+  it('fails when an email that does not exist is supplied', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/signin')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      })
+      .expect(400);
+  });
+
+  it('fails when an incorrect password is supplied', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/api/auth/signin')
+      .send({
+        email: 'test@test.com',
+        password: 'aslkdfjalskdfj'
+      })
+      .expect(400);
+  });
+
+});
+
+

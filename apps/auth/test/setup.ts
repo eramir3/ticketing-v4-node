@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
+import { getConnectionToken } from "@nestjs/mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import mongoose from "mongoose";
+import { Connection } from "mongoose";
 import request from "supertest";
 import { INestApplication } from "@nestjs/common";
 import { appConfig } from "../src/app";
@@ -12,6 +13,7 @@ declare global {
 export let app: INestApplication;
 
 let mongo: MongoMemoryServer | null = null;
+let dbConnection: Connection | null = null;
 
 beforeAll(async () => {
   process.env.JWT_KEY = "asdfasdf";
@@ -22,21 +24,19 @@ beforeAll(async () => {
   const mongoUri = mongo.getUri();
   process.env.MONGO_URI = mongoUri;
 
-  // Waits for mongoose to connect to MongoMemoryServer
-  await mongoose.connect(mongoUri, {});
-
   // Configures nestjs app instance
   const { app: testApp } = await appConfig()
   app = testApp
   await app.init();
+  dbConnection = app.get<Connection>(getConnectionToken());
 });
 
 beforeEach(async () => {
-  if (!mongoose.connection.db) {
+  if (!dbConnection?.db) {
     return;
   }
 
-  const collections = await mongoose.connection.db.collections();
+  const collections = await dbConnection.db.collections();
 
   for (const collection of collections) {
     await collection.deleteMany({});
@@ -48,7 +48,6 @@ afterAll(async () => {
   if (mongo) {
     await mongo.stop();
   }
-  await mongoose.connection.close();
 });
 
 global.signin = async () => {
