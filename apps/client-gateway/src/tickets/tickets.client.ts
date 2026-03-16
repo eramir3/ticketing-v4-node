@@ -4,7 +4,10 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { type TicketingUser } from '@org/common';
+import {
+  buildAuthHeaders,
+  type TicketingUser,
+} from '@org/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ENV_KEYS } from '../config/env.keys';
@@ -34,7 +37,7 @@ export class TicketsClient {
       const { data } = await this.httpClient.post<TicketApiResponse>(
         '/tickets',
         createTicketDto,
-        { headers: this.buildAuthHeaders(user) }
+        { headers: buildAuthHeaders(this.jwtService, user) }
       );
       return data;
     } catch (error) {
@@ -66,21 +69,12 @@ export class TicketsClient {
       const { data } = await this.httpClient.patch<TicketApiResponse>(
         `/tickets/${id}`,
         body,
-        { headers: this.buildAuthHeaders(user) }
+        { headers: buildAuthHeaders(this.jwtService, user) }
       );
       return data;
     } catch (error) {
       this.handleError(error);
     }
-  }
-
-  private buildAuthHeaders(user: TicketingUser) {
-    const token = this.jwtService.sign(user);
-    const session = Buffer.from(JSON.stringify({ jwt: token })).toString('base64');
-
-    return {
-      Cookie: `session=${session}`,
-    };
   }
 
   private handleError(error: unknown): never {

@@ -3,6 +3,8 @@ import './types/express-request';
 export * from './types/user.type'
 export * from './types/order-status'
 
+export * from './utils/build-auth-headers'
+
 export * from './plugins/graphql-error-response.plugin'
 
 export * from './decorators/current-user.decorator'
