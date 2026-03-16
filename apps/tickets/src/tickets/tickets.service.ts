@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { NotAuthorizedError, NotFoundError } from '@org/errors';
+import { BadRequestError, NotAuthorizedError, NotFoundError } from '@org/errors';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './schemas/ticket.schema';
@@ -44,9 +44,9 @@ export class TicketsService {
       throw new NotFoundError();
     }
 
-    // if (ticket.orderId) {
-    //   throw new BadRequestError('Cannot edit a reserved ticket')
-    // }
+    if (ticket.orderId) {
+      throw new BadRequestError('Cannot edit a reserved ticket');
+    }
 
     if (ticket.userId !== userId) {
       throw new NotAuthorizedError();

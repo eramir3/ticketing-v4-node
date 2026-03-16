@@ -1,4 +1,5 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { type TicketingUser } from '@org/common';
 import { CreateTicketInput } from './dto/create-ticket.input';
 import { UpdateTicketInput } from './dto/update-ticket.input';
 import { TicketsClient } from './tickets.client';
@@ -7,11 +8,8 @@ import { TicketsClient } from './tickets.client';
 export class TicketsService {
   constructor(private readonly ticketsClient: TicketsClient) { }
 
-  create(createTicketInput: CreateTicketInput, userId: string) {
-    return this.ticketsClient.create({
-      ...createTicketInput,
-      userId,
-    });
+  create(createTicketInput: CreateTicketInput, user: TicketingUser) {
+    return this.ticketsClient.create(createTicketInput, user);
   }
 
   findAll() {
@@ -22,10 +20,7 @@ export class TicketsService {
     return this.ticketsClient.findOne(id);
   }
 
-  update(id: string, updateTicketInput: UpdateTicketInput, userId: string) {
-    return this.ticketsClient.update(id, {
-      ...updateTicketInput,
-      userId,
-    });
+  update(id: string, updateTicketInput: UpdateTicketInput, user: TicketingUser) {
+    return this.ticketsClient.update(id, updateTicketInput, user);
   }
 }

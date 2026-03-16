@@ -17,7 +17,7 @@ export class TicketsResolver {
     @Args('createTicketInput') createTicketInput: CreateTicketInput,
     @CurrentUser() user: TicketingUser
   ) {
-    return this.ticketsService.create(createTicketInput, user.id);
+    return this.ticketsService.create(createTicketInput, user);
   }
 
   @Query(() => [Ticket], { name: 'tickets' })
@@ -36,6 +36,6 @@ export class TicketsResolver {
     @Args('updateTicketInput') updateTicketInput: UpdateTicketInput,
     @CurrentUser() user: TicketingUser
   ) {
-    return this.ticketsService.update(updateTicketInput.id, updateTicketInput, user.id);
+    return this.ticketsService.update(updateTicketInput.id, updateTicketInput, user);
   }
 }

@@ -4,39 +4,37 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { type TicketingUser } from '@org/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { ENV_KEYS } from '../config/env.keys';
 import { CreateTicketInput } from './dto/create-ticket.input';
 import { UpdateTicketInput } from './dto/update-ticket.input';
 import { Ticket } from './entities/ticket.entity';
 
-type CreateTicketRequest = CreateTicketInput & {
-  userId: string;
-};
-
 type TicketApiResponse = Ticket & {
   _id?: string;
-};
-
-type UpdateTicketRequest = UpdateTicketInput & {
-  userId: string;
 };
 
 @Injectable()
 export class TicketsClient {
   private readonly httpClient: AxiosInstance;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService
+  ) {
     this.httpClient = axios.create({
       baseURL: this.configService.getOrThrow<string>(ENV_KEYS.TICKETS_SERVICE),
     });
   }
 
-  async create(createTicketDto: CreateTicketRequest): Promise<Ticket> {
+  async create(createTicketDto: CreateTicketInput, user: TicketingUser): Promise<Ticket> {
     try {
       const { data } = await this.httpClient.post<TicketApiResponse>(
         '/tickets',
-        createTicketDto
+        createTicketDto,
+        { headers: this.buildAuthHeaders(user) }
       );
       return data;
     } catch (error) {
@@ -62,16 +60,27 @@ export class TicketsClient {
     }
   }
 
-  async update(id: string, updateTicketDto: UpdateTicketRequest): Promise<Ticket> {
+  async update(id: string, updateTicketDto: UpdateTicketInput, user: TicketingUser): Promise<Ticket> {
     try {
+      const { id: _id, ...body } = updateTicketDto;
       const { data } = await this.httpClient.patch<TicketApiResponse>(
         `/tickets/${id}`,
-        updateTicketDto
+        body,
+        { headers: this.buildAuthHeaders(user) }
       );
       return data;
     } catch (error) {
       this.handleError(error);
     }
+  }
+
+  private buildAuthHeaders(user: TicketingUser) {
+    const token = this.jwtService.sign(user);
+    const session = Buffer.from(JSON.stringify({ jwt: token })).toString('base64');
+
+    return {
+      Cookie: `session=${session}`,
+    };
   }
 
   private handleError(error: unknown): never {
