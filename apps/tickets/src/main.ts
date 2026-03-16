@@ -1,27 +1,14 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { CustomExceptionFilter } from '@org/common';
-import { RequestValidationError } from '@org/errors';
-import { AppModule } from './app.module';
+import { appConfig } from './app';
 import { ENV_KEYS } from './config/env.keys';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  Logger.log('Starting up...')
+  const { app } = await appConfig()
   const configService = app.get(ConfigService);
   const globalPrefix = 'api';
   const port = configService.getOrThrow<string>(ENV_KEYS.PORT);
-
-  app.setGlobalPrefix(globalPrefix);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      exceptionFactory: errors => new RequestValidationError(errors),
-    }),
-  );
-  app.useGlobalFilters(new CustomExceptionFilter());
 
   await app.listen(port);
   Logger.log(

@@ -9,9 +9,13 @@ import { TicketsModule } from './tickets/tickets.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['apps/auth/.env', '.env'],
+      envFilePath: ['apps/tickets/.env', '.env'],
       validate: validateEnv,
     }),
+    // Use when not using ConfigService
+    // MongooseModule.forRootAsync({
+    //   useFactory: () => ({ uri: process.env.MONGO_URI }),
+    // }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

@@ -1,10 +1,49 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TicketsController } from './tickets.controller';
-import { TicketsService } from './tickets.service';
+import request from 'supertest';
+import { app, ticketModel } from '../../test/setup';
 
-describe('TicketsController', () => {
+describe('TicketController Index (e2e)', () => {
+  it('can fetch a list of tickets', async () => {
+    await ticketModel.create([
+      { title: 'concert', price: 10, userId: 'user-1' },
+      { title: 'show', price: 20, userId: 'user-2' },
+      { title: 'movie', price: 30, userId: 'user-3' },
+    ]);
 
-  it('should be defined', () => {
-    expect(1).toEqual(1);
+    const response = await request(app.getHttpServer())
+      .get('/api/tickets')
+      .expect(200);
+
+    expect(response.body).toHaveLength(3);
+    expect(response.body.map((ticket: { title: string }) => ticket.title)).toEqual(
+      expect.arrayContaining(['concert', 'show', 'movie'])
+    );
+  });
+});
+
+describe('TicketController New (e2e)', () => {
+  it('has a route handler listening to /api/tickets/graphql for post requests', async () => {
+
+  });
+
+  it('can only be accessed if the user is signed in', async () => {
+
+  });
+
+  it('returns a status other than 401 if the user is signed in', async () => {
+
+  });
+
+
+  it('returns an error if an invalid title is provided', async () => {
+
+  });
+
+  it('returns an error if an invalid price is provided', async () => {
+
+  });
+
+
+  it('creates a ticket with valid inputs', async () => {
+
   });
 });
