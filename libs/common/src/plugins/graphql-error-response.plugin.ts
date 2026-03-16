@@ -1,4 +1,5 @@
 import type { ApolloServerPlugin } from '@apollo/server';
+import { GraphQLError } from 'graphql';
 
 export function createGraphQLErrorResponsePlugin(): ApolloServerPlugin {
   return {
@@ -13,13 +14,24 @@ export function createGraphQLErrorResponsePlugin(): ApolloServerPlugin {
           result.errors = result.errors.flatMap((error) => {
             const extErrors = error.extensions?.errors;
 
+            // Handle validation errors like:
+            // extensions.errors = [{ field, message }]
             if (Array.isArray(extErrors)) {
               return extErrors.map(({ field, message }) =>
-                field ? { field, message } : { message },
+                new GraphQLError(message, {
+                  extensions: field ? { field } : undefined,
+                }),
               );
             }
 
-            return [{ message: error.message }];
+            // Default error normalization
+            return [
+              new GraphQLError(error.message, {
+                extensions: error.extensions?.field
+                  ? { field: error.extensions.field }
+                  : undefined,
+              }),
+            ];
           });
 
           if (result.data === null) {

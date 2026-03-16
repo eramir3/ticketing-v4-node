@@ -1,11 +1,12 @@
-import { UseGuards } from '@nestjs/common';
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { AuthGuard, CurrentUser, type TicketingUser } from '@org/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { AuthGuard, CurrentUser, CustomGraphqlExceptionFilter, type TicketingUser } from '@org/common';
 import { TicketsService } from './tickets.service';
 import { Ticket } from './entities/ticket.entity';
 import { CreateTicketInput } from './dto/create-ticket.input';
 import { UpdateTicketInput } from './dto/update-ticket.input';
 
+@UseFilters(CustomGraphqlExceptionFilter)
 @Resolver(() => Ticket)
 export class TicketsResolver {
   constructor(private readonly ticketsService: TicketsService) { }

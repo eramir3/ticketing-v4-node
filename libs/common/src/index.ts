@@ -13,3 +13,4 @@ export * from './guards/current-user.guard'
 export * from './middlewares/cookie-session.middleware'
 
 export * from './filters/custom-exception.filter'
+export * from './filters/custom-graphql-exception.filter'

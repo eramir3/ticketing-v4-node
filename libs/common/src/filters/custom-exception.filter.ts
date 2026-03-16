@@ -3,65 +3,78 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
-import { CustomError } from '@org/errors';
 import { Response } from 'express';
-import { GraphQLError } from 'graphql';
-
-type NormalizedError = {
-  statusCode: number;
-  errors: { message: string; field?: string }[];
-};
+import { CustomError, type SerializedError } from '@org/errors';
 
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    const normalized = this.normalizeException(exception);
-
-    if (host.getType<'http' | 'graphql'>() === 'graphql') {
-      return this.toGraphQL(normalized);
+    if (host.getType() !== 'http') {
+      throw exception;
     }
 
-    const response = host.switchToHttp().getResponse<Response>();
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
 
-    return response.status(normalized.statusCode).json({
-      errors: normalized.errors,
-    });
-  }
-
-  private normalizeException(exception: unknown): NormalizedError {
     if (exception instanceof CustomError) {
-      return {
-        statusCode: exception.statusCode,
+      return response.status(exception.statusCode).json({
         errors: exception.serializeErrors(),
-      };
+      });
     }
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
-      const res = exception.getResponse() as any;
+      const exceptionResponse = exception.getResponse();
+      const rawErrors =
+        typeof exceptionResponse === 'object' && exceptionResponse !== null
+          ? (exceptionResponse as Record<string, unknown>).errors ??
+            (exceptionResponse as Record<string, unknown>).message ??
+            exception.message
+          : exceptionResponse;
 
-      const messages = Array.isArray(res?.message)
-        ? res.message
-        : [res?.message ?? 'Something went wrong'];
-
-      return {
-        statusCode: status,
-        errors: messages.map((message: string) => ({ message })),
-      };
+      return response.status(status).json({
+        errors: this.normalizeErrors(rawErrors, exception.message),
+      });
     }
 
-    return {
-      statusCode: 500,
-      errors: [{ message: 'Internal server error' }],
-    };
+    console.error(exception);
+    return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      errors: [{ message: 'Something went wrong' }],
+    });
   }
 
-  private toGraphQL(error: NormalizedError) {
-    return new GraphQLError(error.errors[0]?.message ?? 'Internal server error', {
-      extensions: {
-        errors: error.errors,
-      },
-    });
+  private normalizeErrors(
+    rawErrors: unknown,
+    fallbackMessage: string,
+  ): SerializedError[] {
+    const list = Array.isArray(rawErrors) ? rawErrors.flat() : [rawErrors];
+
+    const normalized = list
+      .map((error): SerializedError | null => {
+        if (typeof error === 'string') {
+          return { message: error };
+        }
+
+        if (typeof error !== 'object' || error === null || !('message' in error)) {
+          return null;
+        }
+
+        const message = (error as { message?: unknown }).message;
+        const field = (error as { field?: unknown }).field;
+
+        if (typeof message !== 'string') {
+          return null;
+        }
+
+        return {
+          message,
+          ...(typeof field === 'string' ? { field } : {}),
+        };
+      })
+      .filter((error): error is SerializedError => error !== null);
+
+    return normalized.length > 0 ? normalized : [{ message: fallbackMessage }];
   }
 }
