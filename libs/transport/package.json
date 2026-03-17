@@ -17,6 +17,7 @@
     "name": "transport"
   },
   "dependencies": {
+    "nats": "^2.29.3",
     "tslib": "^2.3.0"
   }
 }
