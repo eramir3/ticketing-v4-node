@@ -12,6 +12,7 @@ import { join } from 'path';
 import { ApolloServerPlugin } from '@apollo/server';
 import { AuthModule } from './auth/auth.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TicketsModule } from './tickets/tickets.module';
     }),
     AuthModule,
     TicketsModule,
+    OrdersModule,
   ],
 })
 export class AppModule implements NestModule {

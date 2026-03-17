@@ -2,15 +2,15 @@ import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 
 @ObjectType()
 export class Ticket {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   id?: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   title?: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   price?: number;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   userId?: string;
 }
