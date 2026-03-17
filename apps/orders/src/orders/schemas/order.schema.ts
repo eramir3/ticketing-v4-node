@@ -24,7 +24,7 @@ class Order {
     required: true,
     unique: true, // enforces one order per ticket
   })
-  ticket!: Types.ObjectId
+  ticket!: Types.ObjectId | Ticket
 }
 
 const OrderSchema = SchemaFactory.createForClass(Order);

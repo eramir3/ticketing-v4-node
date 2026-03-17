@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { TicketsService } from '../tickets/tickets.service';
 import { OrderStatus, TicketingUser } from '@org/common';
 import { BadRequestError, NotAuthorizedError, NotFoundError } from '@org/errors';
-import { OrderCancelledEvent, OrderCreatedEvent } from '@org/transport';
+import { ExpirationCompleteEvent, OrderCancelledEvent, OrderCreatedEvent } from '@org/transport';
 import { Ticket } from '../tickets/schemas/ticket.schema';
 import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
@@ -52,7 +52,7 @@ export class OrdersService {
       userId: user.id,
       status: OrderStatus.Created,
       expiresAt: expiration,
-      ticket: ticket.id
+      ticket: ticket
     });
 
     await order.populate('ticket');
@@ -94,11 +94,27 @@ export class OrdersService {
     order.status = OrderStatus.Cancelled;
     await order.save();
 
-    const ticket = await this.ticketsService.findById(order.ticket.toString())
+    const ticket = this.getPopulatedTicket(order)
 
     await this.publishOrderCancelled(order, ticket);
 
     return order;
+  }
+
+  async expire(data: ExpirationCompleteEvent['data']) {
+    const order = await this.orderModel.findById(data.orderId).populate('ticket');
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    order.set({
+      status: OrderStatus.Cancelled,
+    });
+
+    await order.save();
+
+    // Publish order cancelled event
   }
 
   private buildOrderCreatedEventData(order: Order, ticket: Ticket): OrderCreatedEvent['data'] {
@@ -127,9 +143,9 @@ export class OrdersService {
     };
   }
 
-  // private getPopulatedTicket(order: Order): Ticket {
-  //   return order.ticket as Ticket;
-  // }
+  private getPopulatedTicket(order: Order): Ticket {
+    return order.ticket as Ticket;
+  }
 
   private async publishOrderCreated(order: Order, ticket: Ticket) {
     if (!this.ticketingEventsService || !this.orderCreatedPublisher) {
