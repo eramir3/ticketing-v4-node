@@ -10,6 +10,9 @@ import { ENV_KEYS } from '../config/env.keys';
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
 import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
+import { ExpirationCompleteListener } from '../events/consumers/expiration-complete-listener';
+import { TicketCreatedListener } from '../events/consumers/ticket-created-listener';
+import { TicketUpdatedListener } from '../events/consumers/ticket-updated-listener';
 
 const enableEvents = process.env.NODE_ENV !== 'test';
 const eventImports = enableEvents
@@ -23,7 +26,14 @@ const eventImports = enableEvents
     ]
   : [];
 const eventProviders = enableEvents
-  ? [TicketingEventsService, OrderCreatedPublisher, OrderCancelledPublisher]
+  ? [
+      TicketingEventsService,
+      OrderCreatedPublisher,
+      OrderCancelledPublisher,
+      TicketCreatedListener,
+      TicketUpdatedListener,
+      ExpirationCompleteListener,
+    ]
   : [];
 
 @Module({

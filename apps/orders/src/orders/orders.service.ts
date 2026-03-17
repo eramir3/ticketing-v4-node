@@ -107,6 +107,12 @@ export class OrdersService {
     if (!order) {
       throw new Error('Order not found');
     }
+    if (
+      order.status === OrderStatus.Complete ||
+      order.status === OrderStatus.Cancelled
+    ) {
+      return order;
+    }
 
     order.set({
       status: OrderStatus.Cancelled,
@@ -114,7 +120,11 @@ export class OrdersService {
 
     await order.save();
 
-    // Publish order cancelled event
+    const ticket = this.getPopulatedTicket(order);
+
+    await this.publishOrderCancelled(order, ticket);
+
+    return order;
   }
 
   private buildOrderCreatedEventData(order: Order, ticket: Ticket): OrderCreatedEvent['data'] {

@@ -25,6 +25,30 @@ export class TicketsService {
     return ticket;
   }
 
+  async update(updateTicketDto: UpdateTicketDto) {
+    const ticket = await this.ticketModel.findOne({
+      _id: updateTicketDto.id,
+      version: updateTicketDto.version - 1,
+    });
+
+    if (!ticket) {
+      throw new NotFoundError();
+    }
+
+    ticket.set({
+      ...(updateTicketDto.title !== undefined
+        ? { title: updateTicketDto.title }
+        : {}),
+      ...(updateTicketDto.price !== undefined
+        ? { price: updateTicketDto.price }
+        : {}),
+    });
+
+    await ticket.save();
+
+    return ticket;
+  }
+
   async findById(ticketId: string): Promise<Ticket> {
     const ticket = await this.ticketModel.findById(ticketId);
     if (!ticket) {
