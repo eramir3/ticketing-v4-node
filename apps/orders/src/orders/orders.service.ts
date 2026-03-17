@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order } from './schemas/order.schema';
@@ -6,6 +6,11 @@ import { Model } from 'mongoose';
 import { TicketsService } from '../tickets/tickets.service';
 import { OrderStatus, TicketingUser } from '@org/common';
 import { BadRequestError, NotAuthorizedError, NotFoundError } from '@org/errors';
+import { OrderCancelledEvent, OrderCreatedEvent } from '@org/transport';
+import { Ticket } from '../tickets/schemas/ticket.schema';
+import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
+import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
+import { TicketingEventsService } from '../events/ticketing-events.service';
 
 const EXPIRATION_WINDOW_SECONDS = 1 * 10;
 
@@ -15,6 +20,12 @@ export class OrdersService {
     @InjectModel(Order.name)
     private readonly orderModel: Model<Order>,
     private readonly ticketsService: TicketsService,
+    @Optional()
+    private readonly ticketingEventsService?: TicketingEventsService,
+    @Optional()
+    private readonly orderCreatedPublisher?: OrderCreatedPublisher,
+    @Optional()
+    private readonly orderCancelledPublisher?: OrderCancelledPublisher,
   ) { }
 
   async create(createOrderDto: CreateOrderDto, user: TicketingUser) {
@@ -44,9 +55,8 @@ export class OrdersService {
       ticket: ticket.id
     });
 
-    // Publish an event saying that an order was created
-
     await order.populate('ticket');
+    await this.publishOrderCreated(order, ticket);
 
     return order;
   }
@@ -84,6 +94,62 @@ export class OrdersService {
     order.status = OrderStatus.Cancelled;
     await order.save();
 
+    const ticket = await this.ticketsService.findById(order.ticket.toString())
+
+    await this.publishOrderCancelled(order, ticket);
+
     return order;
+  }
+
+  private buildOrderCreatedEventData(order: Order, ticket: Ticket): OrderCreatedEvent['data'] {
+    return {
+      id: order.id,
+      version: order.version,
+      status: order.status,
+      userId: order.userId,
+      expiresAt: order.expiresAt.toISOString(),
+      ticket: {
+        id: ticket.id,
+        price: ticket.price,
+      },
+    };
+  }
+
+  private buildOrderCancelledEventData(
+    order: Order, ticket: Ticket
+  ): OrderCancelledEvent['data'] {
+    return {
+      id: order.id,
+      version: order.version,
+      ticket: {
+        id: ticket.id,
+      },
+    };
+  }
+
+  // private getPopulatedTicket(order: Order): Ticket {
+  //   return order.ticket as Ticket;
+  // }
+
+  private async publishOrderCreated(order: Order, ticket: Ticket) {
+    if (!this.ticketingEventsService || !this.orderCreatedPublisher) {
+      return;
+    }
+
+    await this.ticketingEventsService.ensureStream();
+    await this.orderCreatedPublisher.publish(
+      this.buildOrderCreatedEventData(order, ticket)
+    );
+  }
+
+  private async publishOrderCancelled(order: Order, ticket: Ticket) {
+    if (!this.ticketingEventsService || !this.orderCancelledPublisher) {
+      return;
+    }
+
+    await this.ticketingEventsService.ensureStream();
+    await this.orderCancelledPublisher.publish(
+      this.buildOrderCancelledEventData(order, ticket)
+    );
   }
 }
