@@ -13,6 +13,13 @@ const envSchema = z.looseObject({
         `${ENV_KEYS.PORT} environment variable must be a valid integer`
       )
   ),
+  [ENV_KEYS.NATS_SERVER]: z.preprocess(
+    (value) => (value == null ? '' : value),
+    z
+      .string()
+      .trim()
+      .min(1, `${ENV_KEYS.NATS_SERVER} environment variable must be defined`)
+  ),
   [ENV_KEYS.MONGO_URI]: z.preprocess(
     (value) => (value == null ? '' : value),
     z

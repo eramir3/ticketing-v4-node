@@ -18,7 +18,7 @@ class Ticket {
   userId!: string;
 
   @Prop()
-  orderId!: string;
+  orderId?: string;
 }
 
 const TicketSchema = SchemaFactory.createForClass(Ticket);
