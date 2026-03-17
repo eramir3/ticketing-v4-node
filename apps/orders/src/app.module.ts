@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CookieSessionMiddleware } from '@org/common';
 import { validateEnv } from './config/env.validation';
 import { ENV_KEYS } from './config/env.keys';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ENV_KEYS } from './config/env.keys';
         uri: configService.getOrThrow<string>(ENV_KEYS.MONGO_URI),
       }),
     }),
+    OrdersModule,
   ],
 })
 export class AppModule implements NestModule {

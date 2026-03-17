@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ versionKey: 'version', optimisticConcurrency: true })
-export class Ticket {
+class Ticket {
   // Virtual id getter provided by Mongoose; added for typing
   id!: string;
 
@@ -31,4 +31,4 @@ TicketSchema.set('toJSON', {
   },
 });
 
-export { TicketSchema }
+export { Ticket, TicketSchema }
