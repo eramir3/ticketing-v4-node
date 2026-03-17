@@ -5,6 +5,7 @@ import { CookieSessionMiddleware } from '@org/common';
 import { validateEnv } from './config/env.validation';
 import { ENV_KEYS } from './config/env.keys';
 import { OrdersModule } from './orders/orders.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { OrdersModule } from './orders/orders.module';
       }),
     }),
     OrdersModule,
+    TicketsModule,
   ],
 })
 export class AppModule implements NestModule {
