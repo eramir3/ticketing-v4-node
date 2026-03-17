@@ -1,5 +1,12 @@
 name: ticketing-v4-nodejs
 services:
+  nats:
+    image: nats:2.10-alpine
+    container_name: ticketing-v4-nats-js
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
 
   client-gateway:
     build:
@@ -8,6 +15,8 @@ services:
     image: ticketing-v4-client-gateway-js
     container_name: ticketing-v4-client-gateway-js
     depends_on:
+      nats:
+        condition: service_started
       auth:
         condition: service_started
       orders:
@@ -34,6 +43,8 @@ services:
     image: ticketing-v4-auth-js
     container_name: ticketing-v4-auth-js
     depends_on:
+      nats:
+        condition: service_started
       auth-mongo:
         condition: service_healthy
     env_file:
@@ -54,6 +65,8 @@ services:
     image: ticketing-v4-tickets-js
     container_name: ticketing-v4-tickets-js
     depends_on:
+      nats:
+        condition: service_started
       tickets-mongo:
         condition: service_healthy
     env_file:
@@ -74,6 +87,8 @@ services:
     image: ticketing-v4-orders-js
     container_name: ticketing-v4-orders-js
     depends_on:
+      nats:
+        condition: service_started
       orders-mongo:
         condition: service_healthy
     env_file:
