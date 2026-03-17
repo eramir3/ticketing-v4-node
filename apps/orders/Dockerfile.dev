@@ -1,0 +1,19 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+# workspace metadata first (better cache)
+COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
+COPY apps/orders/package.json apps/orders/package.json
+COPY libs/common/package.json libs/common/package.json
+COPY libs/errors/package.json libs/errors/package.json
+
+RUN npm install
+
+# now bring sources
+COPY apps/orders apps/orders
+COPY libs/common libs/common
+COPY libs/errors libs/errors
+
+WORKDIR /app/apps/orders
+CMD ["npm", "run", "dev"]
