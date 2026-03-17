@@ -1,35 +1,47 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { UseFilters, UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import {
+  AuthGuard,
+  CurrentUser,
+  CustomGraphqlExceptionFilter,
+  type TicketingUser,
+} from '@org/common';
 import { OrdersService } from './orders.service';
 import { Order } from './entities/order.entity';
 import { CreateOrderInput } from './dto/create-order.input';
-import { UpdateOrderInput } from './dto/update-order.input';
 
+@UseFilters(CustomGraphqlExceptionFilter)
+@UseGuards(AuthGuard)
 @Resolver(() => Order)
 export class OrdersResolver {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Mutation(() => Order)
-  createOrder(@Args('createOrderInput') createOrderInput: CreateOrderInput) {
-    return this.ordersService.create(createOrderInput);
+  createOrder(
+    @Args('createOrderInput') createOrderInput: CreateOrderInput,
+    @CurrentUser() user: TicketingUser
+  ) {
+    return this.ordersService.create(createOrderInput, user);
   }
 
   @Query(() => [Order], { name: 'orders' })
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@CurrentUser() user: TicketingUser) {
+    return this.ordersService.findAll(user);
   }
 
   @Query(() => Order, { name: 'order' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.ordersService.findOne(id);
+  findOne(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: TicketingUser
+  ) {
+    return this.ordersService.findOne(id, user);
   }
 
   @Mutation(() => Order)
-  updateOrder(@Args('updateOrderInput') updateOrderInput: UpdateOrderInput) {
-    return this.ordersService.update(updateOrderInput.id, updateOrderInput);
-  }
-
-  @Mutation(() => Order)
-  removeOrder(@Args('id', { type: () => Int }) id: number) {
-    return this.ordersService.remove(id);
+  cancelOrder(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: TicketingUser
+  ) {
+    return this.ordersService.cancel(id, user);
   }
 }

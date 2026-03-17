@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
+import { type TicketingUser } from '@org/common';
 import { CreateOrderInput } from './dto/create-order.input';
-import { UpdateOrderInput } from './dto/update-order.input';
+import { OrdersClient } from './orders.client';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderInput: CreateOrderInput) {
-    return 'This action adds a new order';
+  constructor(private readonly ordersClient: OrdersClient) { }
+
+  create(createOrderInput: CreateOrderInput, user: TicketingUser) {
+    return this.ordersClient.create(createOrderInput, user);
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  findAll(user: TicketingUser) {
+    return this.ordersClient.findAll(user);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  findOne(id: string, user: TicketingUser) {
+    return this.ordersClient.findOne(id, user);
   }
 
-  update(id: number, updateOrderInput: UpdateOrderInput) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  cancel(id: string, user: TicketingUser) {
+    return this.ordersClient.cancel(id, user);
   }
 }

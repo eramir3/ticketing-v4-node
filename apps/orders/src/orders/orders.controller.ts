@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard, CurrentUser, type TicketingUser } from '@org/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { CurrentUser, TicketingUser } from '@org/common';
 
 @Controller('orders')
+@UseGuards(AuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) { }
 
@@ -19,11 +20,11 @@ export class OrdersController {
 
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: TicketingUser) {
-    return this.ordersService.findOne(+id, user);
+    return this.ordersService.findOne(id, user);
   }
 
   @Patch(':id')
   cancel(@Param('id') id: string, @CurrentUser() user: TicketingUser) {
-    return this.ordersService.cancel(+id, user);
+    return this.ordersService.cancel(id, user);
   }
 }

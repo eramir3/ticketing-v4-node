@@ -19,9 +19,6 @@
       "path": "./apps/tickets"
     },
     {
-      "path": "./apps/orders-e2e"
-    },
-    {
       "path": "./apps/orders"
     }
   ]

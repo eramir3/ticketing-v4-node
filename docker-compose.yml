@@ -10,12 +10,15 @@ services:
     depends_on:
       auth:
         condition: service_started
+      orders:
+        condition: service_started
       tickets:
         condition: service_started
     env_file:
       - ./apps/client-gateway/.env
     environment:
       AUTH_SERVICE: http://auth:3001/api
+      ORDERS_SERVICE: http://orders:3003/api
       TICKETS_SERVICE: http://tickets:3002/api
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve client-gateway"
     volumes:
@@ -64,6 +67,26 @@ services:
     ports:
       - "3002:3002"
 
+  orders:
+    build:
+      context: .
+      dockerfile: apps/orders/Dockerfile.dev
+    image: ticketing-v4-orders-js
+    container_name: ticketing-v4-orders-js
+    depends_on:
+      orders-mongo:
+        condition: service_healthy
+    env_file:
+      - ./apps/orders/.env
+    environment:
+      MONGO_URI: mongodb://orders-mongo:27017/orders
+    command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve orders"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3003:3003"
+
   auth-mongo:
     image: mongo:7.0
     container_name: ticketing-v4-auth-mongo-js
@@ -94,6 +117,21 @@ services:
     volumes:
       - tickets-mongo-data:/data/db
 
+  orders-mongo:
+    image: mongo:7.0
+    container_name: ticketing-v4-orders-mongo-js
+    environment:
+      MONGO_INITDB_DATABASE: orders
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - orders-mongo-data:/data/db
+
 volumes:
   auth-mongo-data:
+  orders-mongo-data:
   tickets-mongo-data:

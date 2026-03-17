@@ -27,6 +27,13 @@ const envSchema = z.looseObject({
       .trim()
       .min(1, `${ENV_KEYS.TICKETS_SERVICE} environment variable must be defined`)
   ),
+  [ENV_KEYS.ORDERS_SERVICE]: z.preprocess(
+    (value) => (value == null ? '' : value),
+    z
+      .string()
+      .trim()
+      .min(1, `${ENV_KEYS.ORDERS_SERVICE} environment variable must be defined`)
+  ),
   [ENV_KEYS.JWT_KEY]: z.preprocess(
     (value) => (value == null ? '' : value),
     z

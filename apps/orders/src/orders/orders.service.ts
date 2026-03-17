@@ -42,11 +42,13 @@ export class OrdersService {
       status: OrderStatus.Created,
       expiresAt: expiration,
       ticket: ticket.id
-    })
+    });
 
     // Publish an event saying that an order was created
 
-    return order
+    await order.populate('ticket');
+
+    return order;
   }
 
   async findAll(user: TicketingUser) {
@@ -57,7 +59,7 @@ export class OrdersService {
     return orders;
   }
 
-  async findOne(id: number, user: TicketingUser) {
+  async findOne(id: string, user: TicketingUser) {
     const order = await this.orderModel.findById(id).populate('ticket');
 
     if (!order) {
@@ -67,10 +69,10 @@ export class OrdersService {
       throw new NotAuthorizedError();
     }
 
-    return order
+    return order;
   }
 
-  async cancel(id: number, user: TicketingUser) {
+  async cancel(id: string, user: TicketingUser) {
     const order = await this.orderModel.findById(id).populate('ticket');
 
     if (!order) {
@@ -82,6 +84,6 @@ export class OrdersService {
     order.status = OrderStatus.Cancelled;
     await order.save();
 
-    return order
+    return order;
   }
 }

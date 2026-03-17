@@ -9,14 +9,39 @@ type Ticket {
   userId: ID!
 }
 
+type Order {
+  id: ID
+  status: OrderStatus
+  expiresAt: DateTime
+  userId: ID
+  ticket: Ticket
+}
+
+scalar DateTime
+
+enum OrderStatus {
+  Created
+  Cancelled
+  AwaitingPayment
+  Complete
+}
+
 type Query {
+  orders: [Order!]!
+  order(id: String!): Order!
   tickets: [Ticket!]!
   ticket(id: String!): Ticket!
 }
 
 type Mutation {
+  createOrder(createOrderInput: CreateOrderInput!): Order!
+  cancelOrder(id: String!): Order!
   createTicket(createTicketInput: CreateTicketInput!): Ticket!
   updateTicket(updateTicketInput: UpdateTicketInput!): Ticket!
+}
+
+input CreateOrderInput {
+  ticketId: ID!
 }
 
 input CreateTicketInput {
