@@ -49,7 +49,8 @@
   "workspaces": [
     "apps/*",
     "libs/common",
-    "libs/errors"
+    "libs/errors",
+    "libs/transport"
   ],
   "dependencies": {
     "@as-integrations/express5": "^1.1.2",

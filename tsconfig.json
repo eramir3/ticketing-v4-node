@@ -20,6 +20,9 @@
     },
     {
       "path": "./apps/orders"
+    },
+    {
+      "path": "./libs/transport"
     }
   ]
 }
