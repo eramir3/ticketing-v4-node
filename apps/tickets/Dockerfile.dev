@@ -7,6 +7,7 @@ COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
 COPY apps/tickets/package.json apps/tickets/package.json
 COPY libs/common/package.json libs/common/package.json
 COPY libs/errors/package.json libs/errors/package.json
+COPY libs/transport/package.json libs/transport/package.json
 
 RUN npm install
 
@@ -14,6 +15,7 @@ RUN npm install
 COPY apps/tickets apps/tickets
 COPY libs/common libs/common
 COPY libs/errors libs/errors
+COPY libs/transport libs/transport
 
 WORKDIR /app/apps/tickets
 CMD ["npm", "run", "dev"]

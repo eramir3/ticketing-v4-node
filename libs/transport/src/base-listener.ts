@@ -28,7 +28,7 @@ export abstract class Listener<T extends Event> {
       ack_policy: AckPolicy.Explicit,
       ack_wait: nanos(this.ackWait),
       deliver_policy: DeliverPolicy.All,
-      durable_name: this.queueGroupName,
+      durable_name: this.durableName(),
       filter_subject: this.subject,
       replay_policy: ReplayPolicy.Instant,
     };
@@ -50,12 +50,13 @@ export abstract class Listener<T extends Event> {
   private async getConsumer(): Promise<Consumer> {
     const jsm = await this.client.jetstreamManager();
     const stream = await jsm.streams.find(this.subject);
+    const durableName = this.durableName();
 
     try {
-      await jsm.consumers.info(stream, this.queueGroupName);
+      await jsm.consumers.info(stream, durableName);
       await jsm.consumers.update(
         stream,
-        this.queueGroupName,
+        durableName,
         this.consumerOptions()
       );
     } catch (error) {
@@ -63,10 +64,16 @@ export abstract class Listener<T extends Event> {
         throw error;
       }
 
-      await jsm.consumers.add(stream, this.consumerOptions());
+      try {
+        await jsm.consumers.add(stream, this.consumerOptions());
+      } catch (addError) {
+        if (!this.isConsumerAlreadyExists(addError)) {
+          throw addError;
+        }
+      }
     }
 
-    return this.client.consumers.get(stream, this.queueGroupName);
+    return this.client.consumers.get(stream, durableName);
   }
 
   private isConsumerMissing(error: unknown): boolean {
@@ -75,6 +82,22 @@ export abstract class Listener<T extends Event> {
     }
 
     return error.api_error?.code === 404;
+  }
+
+  private isConsumerAlreadyExists(error: unknown): boolean {
+    if (!(error instanceof NatsError)) {
+      return false;
+    }
+
+    return (
+      error.api_error?.err_code === 10148 ||
+      error.api_error?.description === 'consumer already exists'
+    );
+  }
+
+  private durableName(): string {
+    const normalizedSubject = this.subject.replace(/[^a-zA-Z0-9_-]+/g, '-');
+    return `${this.queueGroupName}-${normalizedSubject}`;
   }
 
   private async processMessages(messages: ConsumerMessages) {
