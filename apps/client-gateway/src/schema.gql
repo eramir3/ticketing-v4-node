@@ -3,10 +3,10 @@
 # ------------------------------------------------------
 
 type Ticket {
-  id: ID!
-  title: String!
-  price: Float!
-  userId: ID!
+  id: ID
+  title: String
+  price: Float
+  userId: ID
 }
 
 type Order {
@@ -17,8 +17,6 @@ type Order {
   ticket: Ticket
 }
 
-scalar DateTime
-
 enum OrderStatus {
   Created
   Cancelled
@@ -26,22 +24,23 @@ enum OrderStatus {
   Complete
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Query {
-  orders: [Order!]!
-  order(id: String!): Order!
   tickets: [Ticket!]!
   ticket(id: String!): Ticket!
+  orders: [Order!]!
+  order(id: String!): Order!
 }
 
 type Mutation {
-  createOrder(createOrderInput: CreateOrderInput!): Order!
-  cancelOrder(id: String!): Order!
   createTicket(createTicketInput: CreateTicketInput!): Ticket!
   updateTicket(updateTicketInput: UpdateTicketInput!): Ticket!
-}
-
-input CreateOrderInput {
-  ticketId: ID!
+  createOrder(createOrderInput: CreateOrderInput!): Order!
+  cancelOrder(id: String!): Order!
 }
 
 input CreateTicketInput {
@@ -53,4 +52,8 @@ input UpdateTicketInput {
   title: String
   price: Float
   id: String!
+}
+
+input CreateOrderInput {
+  ticketId: ID!
 }
