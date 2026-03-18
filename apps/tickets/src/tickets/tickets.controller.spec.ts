@@ -1,5 +1,10 @@
 import request from 'supertest';
-import { app, ticketModel } from '../../test/setup';
+import {
+  app,
+  ticketCreatedPublisherMock,
+  ticketModel,
+  ticketUpdatedPublisherMock,
+} from '../../test/setup';
 
 describe('TicketController Index (e2e)', () => {
   it('can fetch a list of tickets', async () => {
@@ -107,6 +112,28 @@ describe('TicketController New (e2e)', () => {
     expect(tickets[0]?.price).toBe(10);
     expect(response.body.title).toBe('ticket');
     expect(response.body.price).toBe(10);
+  });
+
+  it('publishes a ticket created event', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/tickets')
+      .set('Cookie', global.signin())
+      .send({
+        title: 'asldkfj',
+        price: 20,
+      })
+      .expect(201);
+
+    expect(ticketCreatedPublisherMock.publish).toHaveBeenCalledTimes(1);
+    expect(ticketCreatedPublisherMock.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: response.body.id,
+        version: response.body.version,
+        title: 'asldkfj',
+        price: 20,
+        userId: response.body.userId,
+      })
+    );
   });
 });
 
@@ -240,6 +267,39 @@ describe('TicketController Update (e2e)', () => {
 
     expect(response.body.title).toBe('updated title');
     expect(response.body.price).toBe(30);
+  });
+
+  it('publishes a ticket updated event', async () => {
+    const cookie = global.signin();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/api/tickets')
+      .set('Cookie', cookie)
+      .send({
+        title: 'asldkfj',
+        price: 20,
+      })
+      .expect(201);
+
+    const updateResponse = await request(app.getHttpServer())
+      .patch(`/api/tickets/${createResponse.body.id}`)
+      .set('Cookie', cookie)
+      .send({
+        title: 'new title',
+        price: 100,
+      })
+      .expect(200);
+
+    expect(ticketUpdatedPublisherMock.publish).toHaveBeenCalledTimes(1);
+    expect(ticketUpdatedPublisherMock.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: updateResponse.body.id,
+        version: updateResponse.body.version,
+        title: 'new title',
+        price: 100,
+        userId: updateResponse.body.userId,
+      })
+    );
   });
 
   it('rejects updates if the ticket is reserved', async () => {

@@ -13,8 +13,8 @@ import { TicketCreatedPublisher } from '../events/publishers/ticket-created-publ
 import { TicketUpdatedPublisher } from '../events/publishers/ticket-updated-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
 
-const enableEvents = process.env.NODE_ENV !== 'test';
-const eventImports = enableEvents
+const enableEventListeners = process.env.NODE_ENV !== 'test';
+const eventImports = enableEventListeners
   ? [
       NatsJetStreamModule.registerAsync({
         inject: [ConfigService],
@@ -24,15 +24,14 @@ const eventImports = enableEvents
       }),
     ]
   : [];
-const eventProviders = enableEvents
-  ? [
-      TicketingEventsService,
-      TicketCreatedPublisher,
-      TicketUpdatedPublisher,
-      OrderCreatedListener,
-      OrderCancelledListener,
-    ]
-  : [];
+const eventProviders = [
+  TicketingEventsService,
+  TicketCreatedPublisher,
+  TicketUpdatedPublisher,
+  ...(enableEventListeners
+    ? [OrderCreatedListener, OrderCancelledListener]
+    : []),
+];
 
 @Module({
   imports: [

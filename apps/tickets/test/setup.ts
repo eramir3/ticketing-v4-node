@@ -1,10 +1,13 @@
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
+import { Test } from '@nestjs/testing';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose, { Connection, Model } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { INestApplication } from "@nestjs/common";
+import { TicketCreatedPublisher } from '../src/events/publishers/ticket-created-publisher';
+import { TicketUpdatedPublisher } from '../src/events/publishers/ticket-updated-publisher';
+import { TicketingEventsService } from '../src/events/ticketing-events.service';
 import { Ticket } from '../src/tickets/schemas/ticket.schema';
-//import { appConfig } from '../src/app'; // Import when not using ConfigService
 
 jest.setTimeout(15000);
 
@@ -15,6 +18,15 @@ declare global {
 // export let ticketModel: Ticket;
 export let ticketModel: Model<Ticket>;
 export let app: INestApplication;
+export const ticketingEventsServiceMock = {
+  ensureStream: jest.fn().mockResolvedValue(undefined),
+};
+export const ticketCreatedPublisherMock = {
+  publish: jest.fn().mockResolvedValue(undefined),
+};
+export const ticketUpdatedPublisherMock = {
+  publish: jest.fn().mockResolvedValue(undefined),
+};
 
 let mongo: MongoMemoryServer | null = null;
 let dbConnection: Connection | null = null;
@@ -29,11 +41,21 @@ beforeAll(async () => {
   const mongoUri = mongo.getUri();
   process.env.MONGO_URI = mongoUri;
 
-  // Configures nestjs app
-  //const { app: testApp } = await appConfig() // Use when not using ConfigService
-  const { appConfig } = await import('../src/app.js');
-  const { app: testApp } = await appConfig()
-  app = testApp
+  const { configureApp } = await import('../src/app.js');
+  const { AppModule } = await import('../src/app.module.js');
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule],
+  })
+    .overrideProvider(TicketingEventsService)
+    .useValue(ticketingEventsServiceMock)
+    .overrideProvider(TicketCreatedPublisher)
+    .useValue(ticketCreatedPublisherMock)
+    .overrideProvider(TicketUpdatedPublisher)
+    .useValue(ticketUpdatedPublisherMock)
+    .compile();
+
+  app = moduleRef.createNestApplication();
+  configureApp(app);
   await app.init();
   dbConnection = app.get<Connection>(getConnectionToken());
   ticketModel = app.get(getModelToken(Ticket.name))
