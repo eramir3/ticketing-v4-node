@@ -28,8 +28,8 @@ After generating an app/lib run: `nx sync`
 `show dbs`
 `use auth`
 `show collections`
-`db.users.find()`
-`db.users.deleteOne({ email: "test@test.com" })`
+`db.collection.find()`
+`db.collection.deleteOne({ email: "test@test.com" })`
 `db.collection.deleteMany({})`
 `db.collection.countDocuments({})`
 `db.tickets.countDocuments({price: 10})`
