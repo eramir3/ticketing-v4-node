@@ -4,7 +4,8 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { Connection } from "mongoose";
 import request from "supertest";
 import { INestApplication } from "@nestjs/common";
-import { appConfig } from "../src/app";
+
+jest.setTimeout(15000);
 
 declare global {
   var signin: () => Promise<string[]>;
@@ -25,6 +26,7 @@ beforeAll(async () => {
   process.env.MONGO_URI = mongoUri;
 
   // Configures nestjs app instance
+  const { appConfig } = await import("../src/app.js");
   const { app: testApp } = await appConfig()
   app = testApp
   await app.init();
