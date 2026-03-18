@@ -11,20 +11,20 @@ import { ENV_KEYS } from '../config/env.keys';
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
 import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
-import { ExpirationCompleteListener } from '../events/consumers/expiration-complete-listener';
-import { TicketCreatedListener } from '../events/consumers/ticket-created-listener';
-import { TicketUpdatedListener } from '../events/consumers/ticket-updated-listener';
+import { ExpirationCompleteListener } from '../events/listeners/expiration-complete-listener';
+import { TicketCreatedListener } from '../events/listeners/ticket-created-listener';
+import { TicketUpdatedListener } from '../events/listeners/ticket-updated-listener';
 
 const enableEventConsumers = process.env.NODE_ENV !== 'test';
 const eventImports = enableEventConsumers
   ? [
-      NatsJetStreamModule.registerAsync({
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => ({
-          servers: configService.getOrThrow<string>(ENV_KEYS.NATS_SERVER),
-        }),
+    NatsJetStreamModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        servers: configService.getOrThrow<string>(ENV_KEYS.NATS_SERVER),
       }),
-    ]
+    }),
+  ]
   : [];
 const eventProviders = [
   TicketingEventsService,
@@ -32,10 +32,10 @@ const eventProviders = [
   OrderCancelledPublisher,
   ...(enableEventConsumers
     ? [
-        TicketCreatedListener,
-        TicketUpdatedListener,
-        ExpirationCompleteListener,
-      ]
+      TicketCreatedListener,
+      TicketUpdatedListener,
+      ExpirationCompleteListener,
+    ]
     : []),
 ];
 
