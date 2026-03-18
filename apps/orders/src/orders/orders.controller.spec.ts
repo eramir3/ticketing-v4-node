@@ -1,41 +1,64 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthGuard } from '@org/common';
-import { JwtService } from '@nestjs/jwt';
-import { OrdersController } from './orders.controller';
-import { OrdersService } from './orders.service';
+import mongoose from 'mongoose';
+import request from 'supertest';
+import { OrderStatus } from '@org/common';
+import { Ticket } from '../tickets/schemas/ticket.schema';
+import {
+  app,
+  orderModel,
+  ticketModel,
+} from '../../test/setup';
 
-describe('OrdersController', () => {
-  let controller: OrdersController;
-  const ordersServiceMock = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    cancel: jest.fn(),
-  };
+describe('OrdersController New (e2e)', () => {
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController],
-      providers: [
-        {
-          provide: OrdersService,
-          useValue: ordersServiceMock,
-        },
-        {
-          provide: AuthGuard,
-          useValue: { canActivate: jest.fn().mockReturnValue(true) },
-        },
-        {
-          provide: JwtService,
-          useValue: { verify: jest.fn() },
-        },
-      ],
-    }).compile();
+  it('returns an error if the ticket does not exist', async () => {
+    const ticketId = new mongoose.Types.ObjectId().toHexString();
 
-    controller = module.get<OrdersController>(OrdersController);
+    await request(app.getHttpServer())
+      .post('/api/orders')
+      .set('Cookie', global.signin())
+      .send({ ticketId })
+      .expect(404);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('returns an error if the ticket is already reserved', async () => {
+    const ticket = await ticketModel.create({
+      title: 'concert',
+      price: 20,
+    });
+
+    await orderModel.create({
+      userId: 'user-123',
+      status: OrderStatus.Created,
+      expiresAt: new Date(),
+      ticket: ticket.id as any
+    });
+
+    await request(app.getHttpServer())
+      .post('/api/orders')
+      .set('Cookie', global.signin())
+      .send({ ticketId: ticket.id })
+      .expect(400);
+  });
+
+  it('reserves a ticket', async () => {
+    const cookie = global.signin();
+    const ticket = await ticketModel.create({
+      title: 'concert',
+      price: 20,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/api/orders')
+      .set('Cookie', cookie)
+      .send({ ticketId: ticket.id })
+      .expect(201);
+
+    const order = await orderModel.findById(response.body.id).populate('ticket');
+
+    expect(order).not.toBeNull();
+    expect(order?.status).toBe(OrderStatus.Created);
+    expect((order?.ticket as Ticket).id).toBe(ticket.id);
+    expect(response.body.status).toBe(OrderStatus.Created);
+    expect(response.body.ticket.id).toBe(ticket.id);
   });
 });
