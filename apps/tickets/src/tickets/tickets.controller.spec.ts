@@ -6,25 +6,6 @@ import {
   ticketUpdatedPublisherMock,
 } from '../../test/setup';
 
-describe('TicketController Index (e2e)', () => {
-  it('can fetch a list of tickets', async () => {
-    await ticketModel.create([
-      { title: 'concert', price: 10, userId: 'user-1' },
-      { title: 'show', price: 20, userId: 'user-2' },
-      { title: 'movie', price: 30, userId: 'user-3' },
-    ]);
-
-    const response = await request(app.getHttpServer())
-      .get('/api/tickets')
-      .expect(200);
-
-    expect(response.body).toHaveLength(3);
-    expect(response.body.map((ticket: { title: string }) => ticket.title)).toEqual(
-      expect.arrayContaining(['concert', 'show', 'movie'])
-    );
-  });
-});
-
 describe('TicketController New (e2e)', () => {
   it('has a route handler listening to /api/tickets for post requests', async () => {
     const response = await request(app.getHttpServer())
@@ -133,6 +114,25 @@ describe('TicketController New (e2e)', () => {
         price: 20,
         userId: response.body.userId,
       })
+    );
+  });
+});
+
+describe('TicketController Index (e2e)', () => {
+  it('can fetch a list of tickets', async () => {
+    await ticketModel.create([
+      { title: 'concert', price: 10, userId: 'user-1' },
+      { title: 'show', price: 20, userId: 'user-2' },
+      { title: 'movie', price: 30, userId: 'user-3' },
+    ]);
+
+    const response = await request(app.getHttpServer())
+      .get('/api/tickets')
+      .expect(200);
+
+    expect(response.body).toHaveLength(3);
+    expect(response.body.map((ticket: { title: string }) => ticket.title)).toEqual(
+      expect.arrayContaining(['concert', 'show', 'movie'])
     );
   });
 });
