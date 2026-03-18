@@ -1,13 +1,13 @@
-import { ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { CustomExceptionFilter } from '@org/common';
 import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
-// Configures app instance
-export async function appConfig() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+export const GLOBAL_PREFIX = 'api';
+
+export function configureApp(app: INestApplication) {
+  app.setGlobalPrefix(GLOBAL_PREFIX);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -17,5 +17,11 @@ export async function appConfig() {
     })
   );
   app.useGlobalFilters(new CustomExceptionFilter());
+}
+
+// Configures app instance
+export async function appConfig() {
+  const app = await NestFactory.create(AppModule);
+  configureApp(app);
   return { app };
 }

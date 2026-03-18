@@ -4,6 +4,7 @@ import { OrderStatus } from '@org/common';
 import { Ticket } from '../tickets/schemas/ticket.schema';
 import {
   app,
+  orderCreatedPublisherMock,
   orderModel,
   ticketModel,
 } from '../../test/setup';
@@ -60,5 +61,31 @@ describe('OrdersController New (e2e)', () => {
     expect((order?.ticket as Ticket).id).toBe(ticket.id);
     expect(response.body.status).toBe(OrderStatus.Created);
     expect(response.body.ticket.id).toBe(ticket.id);
+  });
+
+  it('emits an order created event', async () => {
+    const ticket = await ticketModel.create({
+      title: 'concert',
+      price: 20,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/api/orders')
+      .set('Cookie', global.signin())
+      .send({ ticketId: ticket.id })
+      .expect(201);
+
+    expect(orderCreatedPublisherMock.publish).toHaveBeenCalledTimes(1);
+    expect(orderCreatedPublisherMock.publish).toHaveBeenCalledWith({
+      id: response.body.id,
+      version: response.body.version,
+      status: OrderStatus.Created,
+      userId: response.body.userId,
+      expiresAt: response.body.expiresAt,
+      ticket: {
+        id: ticket.id,
+        price: 20,
+      },
+    });
   });
 });

@@ -15,8 +15,8 @@ import { ExpirationCompleteListener } from '../events/consumers/expiration-compl
 import { TicketCreatedListener } from '../events/consumers/ticket-created-listener';
 import { TicketUpdatedListener } from '../events/consumers/ticket-updated-listener';
 
-const enableEvents = process.env.NODE_ENV !== 'test';
-const eventImports = enableEvents
+const enableEventConsumers = process.env.NODE_ENV !== 'test';
+const eventImports = enableEventConsumers
   ? [
       NatsJetStreamModule.registerAsync({
         inject: [ConfigService],
@@ -26,16 +26,18 @@ const eventImports = enableEvents
       }),
     ]
   : [];
-const eventProviders = enableEvents
-  ? [
-      TicketingEventsService,
-      OrderCreatedPublisher,
-      OrderCancelledPublisher,
-      TicketCreatedListener,
-      TicketUpdatedListener,
-      ExpirationCompleteListener,
-    ]
-  : [];
+const eventProviders = [
+  TicketingEventsService,
+  OrderCreatedPublisher,
+  OrderCancelledPublisher,
+  ...(enableEventConsumers
+    ? [
+        TicketCreatedListener,
+        TicketUpdatedListener,
+        ExpirationCompleteListener,
+      ]
+    : []),
+];
 
 @Module({
   imports: [
