@@ -5,6 +5,7 @@
   "scripts": {
     "docker:affected": "nx affected --target=docker --base=HEAD~1 --head=HEAD",
     "build:libs": "nx run-many --target=build --projects=\"$(find libs -mindepth 1 -maxdepth 1 -type d -exec basename {} \\; | paste -sd, -)\"",
+    "stress:tickets:update-sequence": "node --env-file-if-exists=scripts/stress/.env.local scripts/stress/tickets-update-sequence.js",
     "test:all": "nx run-many --target=test --all",
     "test:apps": "nx run-many --target=test --projects=\"apps/*\""
   },

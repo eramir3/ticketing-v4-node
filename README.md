@@ -27,8 +27,12 @@ After generating an app/lib run: `nx sync`
 `kubectl exec -it auth-mongo-depl-865ff79878-kxhhj -- mongosh`
 `show dbs`
 `use auth`
+`show collections`
 `db.users.find()`
 `db.users.deleteOne({ email: "test@test.com" })`
+`db.collection.deleteMany({})`
+`db.collection.countDocuments({})`
+`db.tickets.countDocuments({price: 10})`
 
 # REBUILD DOCKER-COMPOSE IMAGE
 `docker-compose up --build`
