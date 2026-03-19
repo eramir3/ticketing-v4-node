@@ -102,6 +102,34 @@ services:
     ports:
       - "3003:3003"
 
+  expiration:
+    build:
+      context: .
+      dockerfile: apps/expiration/Dockerfile.dev
+    image: ticketing-v4-expiration-js
+    container_name: ticketing-v4-expiration-js
+    depends_on:
+      nats:
+        condition: service_started
+      redis:
+        condition: service_started
+    env_file:
+      - ./apps/expiration/.env
+    command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve expiration"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3004:3004"
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: ticketing-v4-redis-js
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
   auth-mongo:
     image: mongo:7.0
     container_name: ticketing-v4-auth-mongo-js
@@ -149,4 +177,5 @@ services:
 volumes:
   auth-mongo-data:
   orders-mongo-data:
+  redis-data:
   tickets-mongo-data:

@@ -7,7 +7,7 @@ import { validateEnv } from './config/env.validation';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['apps/orders/.env', '.env'],
+      envFilePath: ['apps/expiration/.env', '.env'],
       validate: validateEnv,
     }),
   ],
