@@ -2,11 +2,18 @@
   "name": "@org/expiration",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "dev": "npx nx serve expiration",
+    "test": "npx nx test expiration"
+  },
   "nx": {
     "name": "expiration",
     "targets": {
       "build": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "webpack-cli build",
           "args": [
@@ -65,7 +72,7 @@
         ],
         "options": {
           "buildTarget": "expiration:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": true
         },
         "configurations": {
           "development": {
@@ -76,16 +83,27 @@
           }
         }
       },
-      "test": {
+      "docker": {
+        "executor": "nx:run-commands",
         "options": {
+          "command": "minikube image build -t ticketing-v3-expiration -f apps/expiration/Dockerfile.dev . --alsologtostderr -v=1"
+        }
+      },
+      "test": {
+        "executor": "@nx/jest:jest",
+        "options": {
+          "jestConfig": "apps/expiration/jest.config.cts",
           "passWithNoTests": true
         }
       }
     }
   },
   "dependencies": {
+    "@org/common": "*",
+    "@org/errors": "*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
+    "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
