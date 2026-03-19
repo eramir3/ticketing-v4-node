@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema({ versionKey: 'version' })
+@Schema({ versionKey: false })
 class Ticket {
   // Virtual id getter provided by Mongoose; added for typing
   id!: string;
 
-  // Mongoose will increment this on each save
+  // Event version from the tickets service projection
+  @Prop({ required: true })
   version!: number;
 
   @Prop({ required: true })

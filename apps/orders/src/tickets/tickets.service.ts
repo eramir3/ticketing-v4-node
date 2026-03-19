@@ -19,7 +19,9 @@ export class TicketsService {
 
   async create(createTicketDto: CreateTicketDto) {
     const ticket = await this.ticketModel.create({
-      ...createTicketDto,
+      title: createTicketDto.title,
+      price: createTicketDto.price,
+      version: createTicketDto.version,
       _id: createTicketDto.id,
     });
     return ticket;
@@ -32,7 +34,7 @@ export class TicketsService {
     });
 
     if (!ticket) {
-      throw new NotFoundError();
+      throw new NotFoundError('Ticket not found');
     }
 
     ticket.set({
@@ -42,6 +44,7 @@ export class TicketsService {
       ...(updateTicketDto.price !== undefined
         ? { price: updateTicketDto.price }
         : {}),
+      version: updateTicketDto.version
     });
 
     await ticket.save();

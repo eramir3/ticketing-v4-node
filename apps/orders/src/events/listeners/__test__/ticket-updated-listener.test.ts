@@ -1,4 +1,3 @@
-import { NotFoundError } from '@org/errors';
 import { TicketUpdatedEvent } from '@org/transport';
 import { type JetStreamClient, type JsMsg } from 'nats';
 import { TicketsService } from '../../../tickets/tickets.service';
@@ -57,14 +56,14 @@ describe('TicketUpdatedListener', () => {
     expect(msg.ack).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call ack if the event has a skipped version number', async () => {
+  it('does not call ack if ticket update fails', async () => {
     const { listener, update } = buildListener();
     const data = buildData();
     const msg = buildMessage();
 
-    update.mockRejectedValueOnce(new NotFoundError());
+    update.mockRejectedValueOnce(new Error('update failed'));
 
-    await expect(listener.onMessage(data, msg)).rejects.toThrow();
+    await expect(listener.onMessage(data, msg)).rejects.toThrow('update failed');
     expect(msg.ack).not.toHaveBeenCalled();
   });
 });

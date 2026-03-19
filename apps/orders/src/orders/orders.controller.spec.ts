@@ -10,6 +10,13 @@ import {
   ticketModel,
 } from '../../test/setup';
 
+const buildTicketAttrs = (overrides: Partial<Ticket> = {}) => ({
+  title: 'concert',
+  price: 20,
+  version: 0,
+  ...overrides,
+});
+
 describe('OrdersController New (e2e)', () => {
 
   it('returns an error if the ticket does not exist', async () => {
@@ -23,10 +30,7 @@ describe('OrdersController New (e2e)', () => {
   });
 
   it('returns an error if the ticket is already reserved', async () => {
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     await orderModel.create({
       userId: 'user-123',
@@ -44,10 +48,7 @@ describe('OrdersController New (e2e)', () => {
 
   it('reserves a ticket', async () => {
     const cookie = global.signin();
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const response = await request(app.getHttpServer())
       .post('/api/orders')
@@ -65,10 +66,7 @@ describe('OrdersController New (e2e)', () => {
   });
 
   it('emits an order created event', async () => {
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const response = await request(app.getHttpServer())
       .post('/api/orders')
@@ -96,18 +94,15 @@ describe('OrdersController Index (e2e)', () => {
     const userOne = global.signin();
     const userTwo = global.signin();
 
-    const ticketOne = await ticketModel.create({
-      title: 'concert',
-      price: 10,
-    });
-    const ticketTwo = await ticketModel.create({
-      title: 'show',
-      price: 20,
-    });
-    const ticketThree = await ticketModel.create({
-      title: 'movie',
-      price: 30,
-    });
+    const ticketOne = await ticketModel.create(
+      buildTicketAttrs({ title: 'concert', price: 10 })
+    );
+    const ticketTwo = await ticketModel.create(
+      buildTicketAttrs({ title: 'show', price: 20 })
+    );
+    const ticketThree = await ticketModel.create(
+      buildTicketAttrs({ title: 'movie', price: 30 })
+    );
 
     await request(app.getHttpServer())
       .post('/api/orders')
@@ -145,10 +140,7 @@ describe('OrdersController Index (e2e)', () => {
 describe('OrdersController Show (e2e)', () => {
   it('fetches the order', async () => {
     const cookie = global.signin();
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const createResponse = await request(app.getHttpServer())
       .post('/api/orders')
@@ -169,10 +161,7 @@ describe('OrdersController Show (e2e)', () => {
   it('returns an error if one user tries to fetch another users order', async () => {
     const ownerCookie = global.signin();
     const otherUserCookie = global.signin();
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const createResponse = await request(app.getHttpServer())
       .post('/api/orders')
@@ -191,10 +180,7 @@ describe('OrdersController Show (e2e)', () => {
 describe('OrdersController Cancel (e2e)', () => {
   it('marks an order as cancelled', async () => {
     const cookie = global.signin();
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const createResponse = await request(app.getHttpServer())
       .post('/api/orders')
@@ -215,10 +201,7 @@ describe('OrdersController Cancel (e2e)', () => {
 
   it('emits a order cancelled event', async () => {
     const cookie = global.signin();
-    const ticket = await ticketModel.create({
-      title: 'concert',
-      price: 20,
-    });
+    const ticket = await ticketModel.create(buildTicketAttrs());
 
     const createResponse = await request(app.getHttpServer())
       .post('/api/orders')

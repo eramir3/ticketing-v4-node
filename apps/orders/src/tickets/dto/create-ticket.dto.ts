@@ -13,4 +13,8 @@ export class CreateTicketDto {
   @IsNumber()
   @Min(0, { message: 'Price must be greater than 0' })
   price!: number;
+
+  @IsNotEmpty({ message: 'Ticket version must be provided' })
+  @IsNumber({}, { message: 'Ticket version must be a number' })
+  version!: number
 }

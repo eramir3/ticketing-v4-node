@@ -131,12 +131,12 @@ main()
   })
   .catch((error) => {
     if (axios.isAxiosError(error)) {
-    console.error('Stress run failed');
-    console.error('Status:', error.response?.status ?? 'unknown');
-    console.error('Response:', error.response?.data ?? error.message);
-    process.exit(1);
-  }
+      console.error('Stress run failed');
+      console.error('Status:', error.response?.status ?? 'unknown');
+      console.error('Response:', error.response?.data ?? error.message);
+      process.exit(1);
+    }
 
-  console.error(error);
-  process.exit(1);
+    console.error(error);
+    process.exit(1);
   });
