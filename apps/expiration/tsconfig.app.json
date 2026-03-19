@@ -20,6 +20,9 @@
   ],
   "references": [
     {
+      "path": "../../libs/transport/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/errors/tsconfig.lib.json"
     },
     {

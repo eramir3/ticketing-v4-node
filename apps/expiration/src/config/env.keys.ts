@@ -1,5 +1,7 @@
 export const ENV_KEYS = {
   PORT: 'PORT',
   NATS_SERVER: 'NATS_SERVER',
+  REDIS_HOST: 'REDIS_HOST',
+  REDIS_PORT: 'REDIS_PORT',
   JWT_KEY: 'JWT_KEY',
 } as const;
