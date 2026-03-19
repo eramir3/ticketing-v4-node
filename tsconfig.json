@@ -23,6 +23,12 @@
     },
     {
       "path": "./libs/transport"
+    },
+    {
+      "path": "./apps/expiration-e2e"
+    },
+    {
+      "path": "./apps/expiration"
     }
   ]
 }
