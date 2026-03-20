@@ -15,8 +15,9 @@ import { CreateOrderInput } from './dto/create-order.input';
 import { Order } from './entities/order.entity';
 import { Ticket } from '../tickets/entities/ticket.entity';
 
-type OrderApiResponse = Omit<Order, 'ticket'> & {
+type OrderApiResponse = Omit<Order, 'ticket' | 'expiresAt'> & {
   _id?: string;
+  expiresAt?: string | Date | null;
   ticket?: Ticket | string;
 };
 
@@ -88,10 +89,21 @@ export class OrdersClient {
   private normalizeOrder(order: OrderApiResponse): Order {
     return {
       ...order,
+      expiresAt: this.normalizeExpiresAt(order.expiresAt),
       ticket: typeof order.ticket === 'string'
         ? { id: order.ticket }
         : order.ticket,
     };
+  }
+
+  private normalizeExpiresAt(expiresAt: string | Date | null | undefined) {
+    if (!expiresAt) {
+      return undefined;
+    }
+
+    const value = expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
+
+    return Number.isNaN(value.getTime()) ? undefined : value;
   }
 
   private handleError(error: unknown): never {
