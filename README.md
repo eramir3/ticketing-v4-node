@@ -11,6 +11,7 @@
 `nx generate @nx/nest:app --name=tickets --directory=apps/tickets`
 `nx generate @nx/nest:app --name=orders --directory=apps/orders`
 `nx generate @nx/nest:app --name=expiration --directory=apps/expiration`
+`nx generate @nx/nest:app --name=payments --directory=apps/payments`
 
 ## libs
 `nx generate @nx/node:library --name=common --directory=libs/common`

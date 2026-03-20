@@ -12,8 +12,8 @@ import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-pu
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
 
-// const EXPIRATION_WINDOW_SECONDS = 15 * 60;
-const EXPIRATION_WINDOW_SECONDS = 1 * 10;
+// const EXPIRATION_WINDOW_SECONDS = 15 * 60; // fifteen minutes
+const EXPIRATION_WINDOW_SECONDS = 1 * 60; // one minute
 
 @Injectable()
 export class OrdersService {

@@ -56,7 +56,8 @@
         "apps/auth-e2e/**/*",
         "apps/tickets-e2e/**/*",
         "apps/orders-e2e/**/*",
-        "apps/expiration-e2e/**/*"
+        "apps/expiration-e2e/**/*",
+        "apps/payments-e2e/**/*"
       ]
     }
   ],
