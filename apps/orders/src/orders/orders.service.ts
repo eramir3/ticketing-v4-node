@@ -12,6 +12,7 @@ import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-pu
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
 
+// const EXPIRATION_WINDOW_SECONDS = 15 * 60;
 const EXPIRATION_WINDOW_SECONDS = 1 * 10;
 
 @Injectable()
@@ -105,7 +106,7 @@ export class OrdersService {
     const order = await this.orderModel.findById(data.orderId).populate('ticket');
 
     if (!order) {
-      throw new Error('Order not found');
+      return;
     }
     if (
       order.status === OrderStatus.Complete ||

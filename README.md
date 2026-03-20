@@ -55,3 +55,10 @@ docker compose up --build
 `docker compose stop tickets`
 `docker compose rm -fsv tickets`
 `docker compose up --build tickets`
+
+# RESTART NATS
+````
+docker compose rm -sf nats
+docker compose up -d nats
+docker compose restart orders expiration tickets
+````
