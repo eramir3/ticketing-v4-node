@@ -26,8 +26,9 @@ After generating an app/lib run: `nx sync`
 
 # MONGODB
 `docker exec -it ticketing-auth-mongo mongosh`
-`docker exec -it ticketing-v4-orders-mongo-js mongosh`
 `docker exec -it ticketing-v4-tickets-mongo-js mongosh`
+`docker exec -it ticketing-v4-orders-mongo-js mongosh`
+`docker exec -it ticketing-v4-payments-mongo-js mongosh`
 `kubectl exec -it auth-mongo-depl-865ff79878-kxhhj -- mongosh`
 `show dbs`
 `use auth`
