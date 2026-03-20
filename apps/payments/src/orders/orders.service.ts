@@ -1,26 +1,54 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { OrderStatus } from '@org/common';
+import { NotFoundError } from '@org/errors';
+import {
+  OrderCancelledEvent,
+  OrderCreatedEvent,
+} from '@org/transport';
+import { Order } from './schemas/order.schema';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectModel(Order.name)
+    private readonly orderModel: Model<Order>,
+  ) { }
+
+  async create(data: OrderCreatedEvent['data']) {
+    return this.orderModel.create({
+      _id: data.id,
+      price: data.ticket.price,
+      status: data.status,
+      userId: data.userId,
+      version: data.version,
+    });
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  async cancel(data: OrderCancelledEvent['data']) {
+    const order = await this.orderModel.findOne({
+      _id: data.id,
+      version: data.version - 1,
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+    if (order.status === OrderStatus.Complete) {
+      return order;
+    }
+
+    order.set({
+      status: OrderStatus.Cancelled,
+      version: data.version,
+    });
+    await order.save();
+
+    return order;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async findById(id: string) {
+    return this.orderModel.findById(id);
   }
 }

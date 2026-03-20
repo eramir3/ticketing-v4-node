@@ -29,6 +29,4 @@ OrderSchema.set('toJSON', {
   },
 });
 
-
-
 export { Order, OrderSchema };

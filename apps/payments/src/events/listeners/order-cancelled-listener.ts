@@ -1,30 +1,47 @@
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { type JetStreamClient, type JsMsg } from 'nats';
 import {
+  Listener,
+  NATS_JETSTREAM_CLIENT,
   OrderCancelledEvent,
   Subjects,
-  Listener,
-  OrderStatus,
-} from '@rallycoding/common';
-import { Message } from 'node-nats-streaming';
+} from '@org/transport';
 import { queueGroupName } from './queue-group-name';
-import { Order } from '../../models/order';
+import { OrdersService } from '../../orders/orders.service';
+import { TicketingEventsService } from '../ticketing-events.service';
 
-export class OrderCancelledListener extends Listener<OrderCancelledEvent> {
+@Injectable()
+export class OrderCancelledListener
+  extends Listener<OrderCancelledEvent>
+  implements OnModuleInit {
   subject: Subjects.OrderCancelled = Subjects.OrderCancelled;
   queueGroupName = queueGroupName;
+  private readonly logger = new Logger(OrderCancelledListener.name);
 
-  async onMessage(data: OrderCancelledEvent['data'], msg: Message) {
-    const order = await Order.findOne({
-      _id: data.id,
-      version: data.version - 1,
-    });
+  constructor(
+    @Inject(NATS_JETSTREAM_CLIENT)
+    client: JetStreamClient,
+    private readonly ordersService: OrdersService,
+    private readonly ticketingEventsService: TicketingEventsService,
+  ) {
+    super(client);
+  }
 
-    if (!order) {
-      throw new Error('Order not found');
-    }
+  onModuleInit() {
+    void this.start();
+  }
 
-    order.set({ status: OrderStatus.Cancelled });
-    await order.save();
-
+  async onMessage(data: OrderCancelledEvent['data'], msg: JsMsg) {
+    await this.ordersService.cancel(data);
     msg.ack();
+  }
+
+  private async start() {
+    try {
+      await this.ticketingEventsService.ensureStream();
+      await this.listen();
+    } catch (error) {
+      this.logger.error('Failed to start order-cancelled listener', error);
+    }
   }
 }

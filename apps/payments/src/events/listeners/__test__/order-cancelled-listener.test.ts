@@ -1,52 +1,69 @@
-import mongoose from 'mongoose';
-import { Message } from 'node-nats-streaming';
-import { OrderStatus, OrderCancelledEvent } from '@rallycoding/common';
+import { OrderCancelledEvent } from '@org/transport';
+import { type JetStreamClient, type JsMsg } from 'nats';
+import { OrdersService } from '../../../orders/orders.service';
+import { TicketingEventsService } from '../../ticketing-events.service';
 import { OrderCancelledListener } from '../order-cancelled-listener';
-import { natsWrapper } from '../../../nats-wrapper';
-import { Order } from '../../../models/order';
 
-const setup = async () => {
-  const listener = new OrderCancelledListener(natsWrapper.client);
-
-  const order = Order.build({
-    id: new mongoose.Types.ObjectId().toHexString(),
-    status: OrderStatus.Created,
-    price: 10,
-    userId: 'asldkfj',
-    version: 0,
-  });
-  await order.save();
-
-  const data: OrderCancelledEvent['data'] = {
-    id: order.id,
-    version: 1,
-    ticket: {
-      id: 'asldkfj',
-    },
-  };
-
-  // @ts-ignore
-  const msg: Message = {
-    ack: jest.fn(),
-  };
-
-  return { listener, data, msg, order };
-};
-
-it('updates the status of the order', async () => {
-  const { listener, data, msg, order } = await setup();
-
-  await listener.onMessage(data, msg);
-
-  const updatedOrder = await Order.findById(order.id);
-
-  expect(updatedOrder!.status).toEqual(OrderStatus.Cancelled);
+const buildData = (): OrderCancelledEvent['data'] => ({
+  id: '507f1f77bcf86cd799439011',
+  version: 1,
+  ticket: {
+    id: 'ticket-123',
+  },
 });
 
-it('acks the message', async () => {
-  const { listener, data, msg, order } = await setup();
+const buildMessage = () =>
+  ({
+    ack: jest.fn(),
+  }) as unknown as JsMsg;
 
-  await listener.onMessage(data, msg);
+const buildListener = () => {
+  const cancel = jest.fn().mockResolvedValue(undefined);
+  const ordersService = {
+    cancel,
+  } as unknown as OrdersService;
+  const ticketingEventsService = {
+    ensureStream: jest.fn(),
+  } as unknown as TicketingEventsService;
 
-  expect(msg.ack).toHaveBeenCalled();
+  const listener = new OrderCancelledListener(
+    {} as JetStreamClient,
+    ordersService,
+    ticketingEventsService
+  );
+
+  return { listener, cancel };
+};
+
+describe('OrderCancelledListener', () => {
+  it('cancels the projected order', async () => {
+    const { listener, cancel } = buildListener();
+    const data = buildData();
+    const msg = buildMessage();
+
+    await listener.onMessage(data, msg);
+
+    expect(cancel).toHaveBeenCalledWith(data);
+  });
+
+  it('acks the message', async () => {
+    const { listener } = buildListener();
+    const data = buildData();
+    const msg = buildMessage();
+
+    await listener.onMessage(data, msg);
+
+    expect(msg.ack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not ack if cancelling the projection fails', async () => {
+    const { listener, cancel } = buildListener();
+    const data = buildData();
+    const msg = buildMessage();
+
+    cancel.mockRejectedValueOnce(new Error('cancel failed'));
+
+    await expect(listener.onMessage(data, msg)).rejects.toThrow('cancel failed');
+    expect(msg.ack).not.toHaveBeenCalled();
+  });
 });
