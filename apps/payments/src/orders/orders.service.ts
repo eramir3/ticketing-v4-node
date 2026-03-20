@@ -16,24 +16,24 @@ export class OrdersService {
     private readonly orderModel: Model<Order>,
   ) { }
 
-  async create(data: OrderCreatedEvent['data']) {
+  async create(orderCreatedEvent: OrderCreatedEvent['data']) {
     return this.orderModel.create({
-      _id: data.id,
-      price: data.ticket.price,
-      status: data.status,
-      userId: data.userId,
-      version: data.version,
+      _id: orderCreatedEvent.id,
+      price: orderCreatedEvent.ticket.price,
+      status: orderCreatedEvent.status,
+      userId: orderCreatedEvent.userId,
+      version: orderCreatedEvent.version,
     });
   }
 
-  async cancel(data: OrderCancelledEvent['data']) {
+  async cancel(orderCancelledEvent: OrderCancelledEvent['data']) {
     const order = await this.orderModel.findOne({
-      _id: data.id,
-      version: data.version - 1,
+      _id: orderCancelledEvent.id,
+      version: orderCancelledEvent.version - 1,
     });
 
     if (!order) {
-      throw new NotFoundError('Order not found');
+      return;
     }
     if (order.status === OrderStatus.Complete) {
       return order;
@@ -41,7 +41,7 @@ export class OrdersService {
 
     order.set({
       status: OrderStatus.Cancelled,
-      version: data.version,
+      version: orderCancelledEvent.version,
     });
     await order.save();
 

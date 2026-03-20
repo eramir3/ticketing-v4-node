@@ -12,6 +12,9 @@ import { Payment } from './schemas/payment.schema';
 
 @Injectable()
 export class PaymentsService {
+  private readonly paymentProcessingDelayMs =
+    process.env.NODE_ENV === 'test' ? 0 : 6_000;
+
   constructor(
     @InjectModel(Payment.name)
     private readonly paymentModel: Model<Payment>,
@@ -41,6 +44,8 @@ export class PaymentsService {
       throw new BadRequestError('Order is already paid');
     }
 
+    await this.simulatePaymentProcessing();
+
     const payment = await this.paymentModel.create({ orderId });
 
     await this.publishPaymentCreated(payment);
@@ -64,6 +69,16 @@ export class PaymentsService {
     await this.ticketingEventsService.ensureStream();
     await this.paymentCreatedPublisher.publish(
       this.buildPaymentCreatedEventData(payment)
+    );
+  }
+
+  private async simulatePaymentProcessing() {
+    if (this.paymentProcessingDelayMs === 0) {
+      return;
+    }
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, this.paymentProcessingDelayMs)
     );
   }
 }

@@ -1,11 +1,20 @@
 import { NotFoundError } from '@org/errors';
+import { TicketCreatedEvent, TicketUpdatedEvent } from '@org/transport';
 import { TicketsService } from './tickets.service';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
 
-const buildCreateTicketDto = (
-  overrides: Partial<CreateTicketDto> = {}
-): CreateTicketDto => ({
+type TicketProjectionCreateInput = Pick<
+  TicketCreatedEvent['data'],
+  'id' | 'title' | 'price' | 'version'
+>;
+
+type TicketProjectionUpdateInput = Pick<
+  TicketUpdatedEvent['data'],
+  'id' | 'title' | 'price' | 'version'
+>;
+
+const buildCreateTicketInput = (
+  overrides: Partial<TicketProjectionCreateInput> = {}
+): TicketProjectionCreateInput => ({
   id: '507f1f77bcf86cd799439011',
   title: 'concert',
   price: 10,
@@ -13,9 +22,9 @@ const buildCreateTicketDto = (
   ...overrides,
 });
 
-const buildUpdateTicketDto = (
-  overrides: Partial<UpdateTicketDto> = {}
-): UpdateTicketDto => ({
+const buildUpdateTicketInput = (
+  overrides: Partial<TicketProjectionUpdateInput> = {}
+): TicketProjectionUpdateInput => ({
   id: '507f1f77bcf86cd799439011',
   title: 'updated concert',
   price: 15,
@@ -42,17 +51,17 @@ describe('Orders TicketsService', () => {
       version: 0,
     };
     const service = new TicketsService(ticketModel as never, orderModel as never);
-    const createTicketDto = buildCreateTicketDto();
+    const createTicketInput = buildCreateTicketInput();
 
     ticketModel.create.mockResolvedValueOnce(createdTicket);
 
-    const result = await service.create(createTicketDto);
+    const result = await service.create(createTicketInput);
 
     expect(ticketModel.create).toHaveBeenCalledWith({
-      _id: createTicketDto.id,
-      title: createTicketDto.title,
-      price: createTicketDto.price,
-      version: createTicketDto.version,
+      _id: createTicketInput.id,
+      title: createTicketInput.title,
+      price: createTicketInput.price,
+      version: createTicketInput.version,
     });
     expect(result).toBe(createdTicket);
   });
@@ -67,20 +76,20 @@ describe('Orders TicketsService', () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
     const service = new TicketsService(ticketModel as never, orderModel as never);
-    const updateTicketDto = buildUpdateTicketDto();
+    const updateTicketInput = buildUpdateTicketInput();
 
     ticketModel.findOne.mockResolvedValueOnce(ticketDocument);
 
-    await service.update(updateTicketDto);
+    await service.update(updateTicketInput);
 
     expect(ticketModel.findOne).toHaveBeenCalledWith({
-      _id: updateTicketDto.id,
-      version: updateTicketDto.version - 1,
+      _id: updateTicketInput.id,
+      version: updateTicketInput.version - 1,
     });
     expect(ticketDocument.set).toHaveBeenCalledWith({
-      title: updateTicketDto.title,
-      price: updateTicketDto.price,
-      version: updateTicketDto.version,
+      title: updateTicketInput.title,
+      price: updateTicketInput.price,
+      version: updateTicketInput.version,
     });
     expect(ticketDocument.save).toHaveBeenCalledTimes(1);
   });
@@ -94,7 +103,7 @@ describe('Orders TicketsService', () => {
 
     ticketModel.findOne.mockResolvedValueOnce(null);
 
-    await expect(service.update(buildUpdateTicketDto())).rejects.toThrow(
+    await expect(service.update(buildUpdateTicketInput())).rejects.toThrow(
       NotFoundError
     );
   });

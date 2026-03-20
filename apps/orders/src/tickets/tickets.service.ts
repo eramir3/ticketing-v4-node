@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ticket } from './schemas/ticket.schema';
 import { Order } from '../orders/schemas/order.schema';
 import { Model } from 'mongoose';
 import { NotFoundError } from '@org/errors';
 import { OrderStatus } from '@org/common';
+import { TicketCreatedEvent, TicketUpdatedEvent } from '@org/transport';
+
+type TicketProjectionCreateInput = Pick<
+  TicketCreatedEvent['data'],
+  'id' | 'title' | 'price' | 'version'
+>;
+
+type TicketProjectionUpdateInput = Pick<
+  TicketUpdatedEvent['data'],
+  'id' | 'title' | 'price' | 'version'
+>;
 
 @Injectable()
 export class TicketsService {
@@ -17,20 +26,20 @@ export class TicketsService {
     private readonly orderModel: Model<Order>,
   ) { }
 
-  async create(createTicketDto: CreateTicketDto) {
+  async create(ticketCreatedEvent: TicketProjectionCreateInput) {
     const ticket = await this.ticketModel.create({
-      title: createTicketDto.title,
-      price: createTicketDto.price,
-      version: createTicketDto.version,
-      _id: createTicketDto.id,
+      title: ticketCreatedEvent.title,
+      price: ticketCreatedEvent.price,
+      version: ticketCreatedEvent.version,
+      _id: ticketCreatedEvent.id,
     });
     return ticket;
   }
 
-  async update(updateTicketDto: UpdateTicketDto) {
+  async update(ticketUpdatedEvent: TicketProjectionUpdateInput) {
     const ticket = await this.ticketModel.findOne({
-      _id: updateTicketDto.id,
-      version: updateTicketDto.version - 1,
+      _id: ticketUpdatedEvent.id,
+      version: ticketUpdatedEvent.version - 1,
     });
 
     if (!ticket) {
@@ -38,13 +47,13 @@ export class TicketsService {
     }
 
     ticket.set({
-      ...(updateTicketDto.title !== undefined
-        ? { title: updateTicketDto.title }
+      ...(ticketUpdatedEvent.title !== undefined
+        ? { title: ticketUpdatedEvent.title }
         : {}),
-      ...(updateTicketDto.price !== undefined
-        ? { price: updateTicketDto.price }
+      ...(ticketUpdatedEvent.price !== undefined
+        ? { price: ticketUpdatedEvent.price }
         : {}),
-      version: updateTicketDto.version
+      version: ticketUpdatedEvent.version
     });
 
     await ticket.save();
