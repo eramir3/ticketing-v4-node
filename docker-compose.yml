@@ -21,6 +21,8 @@ services:
         condition: service_started
       orders:
         condition: service_started
+      payments:
+        condition: service_started
       tickets:
         condition: service_started
     env_file:
@@ -28,6 +30,7 @@ services:
     environment:
       AUTH_SERVICE: http://auth:3001/api
       ORDERS_SERVICE: http://orders:3003/api
+      PAYMENTS_SERVICE: http://payments:3005/api
       TICKETS_SERVICE: http://tickets:3002/api
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve client-gateway"
     volumes:
@@ -122,6 +125,28 @@ services:
     ports:
       - "3004:3004"
 
+  payments:
+    build:
+      context: .
+      dockerfile: apps/payments/Dockerfile.dev
+    image: ticketing-v4-payments-js
+    container_name: ticketing-v4-payments-js
+    depends_on:
+      nats:
+        condition: service_started
+      payments-mongo:
+        condition: service_healthy
+    env_file:
+      - ./apps/payments/.env
+    environment:
+      MONGO_URI: mongodb://payments-mongo:27017/payments
+    command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve payments"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3005:3005"
+
   redis:
     image: redis:7.4-alpine
     container_name: ticketing-v4-redis-js
@@ -174,8 +199,23 @@ services:
     volumes:
       - orders-mongo-data:/data/db
 
+  payments-mongo:
+    image: mongo:7.0
+    container_name: ticketing-v4-payments-mongo-js
+    environment:
+      MONGO_INITDB_DATABASE: payments
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - payments-mongo-data:/data/db
+
 volumes:
   auth-mongo-data:
   orders-mongo-data:
+  payments-mongo-data:
   redis-data:
   tickets-mongo-data:
