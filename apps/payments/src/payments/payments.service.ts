@@ -13,7 +13,7 @@ import { Payment } from './schemas/payment.schema';
 @Injectable()
 export class PaymentsService {
   private readonly paymentProcessingDelayMs =
-    process.env.NODE_ENV === 'test' ? 0 : 6_000;
+    process.env.NODE_ENV === 'test' ? 0 : 3_000;
 
   constructor(
     @InjectModel(Payment.name)

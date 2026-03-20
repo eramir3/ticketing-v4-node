@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { TicketsService } from '../tickets/tickets.service';
 import { OrderStatus, TicketingUser } from '@org/common';
 import { BadRequestError, NotAuthorizedError, NotFoundError } from '@org/errors';
-import { ExpirationCompleteEvent, OrderCancelledEvent, OrderCreatedEvent } from '@org/transport';
+import { ExpirationCompleteEvent, OrderCancelledEvent, OrderCreatedEvent, PaymentCreatedEvent } from '@org/transport';
 import { Ticket } from '../tickets/schemas/ticket.schema';
 import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
 import { OrderCreatedPublisher } from '../events/publishers/order-created-publisher';
@@ -126,6 +126,19 @@ export class OrdersService {
     await this.publishOrderCancelled(order, ticket);
 
     return order;
+  }
+
+  async paymentCreated(data: PaymentCreatedEvent['data']) {
+    const order = await this.orderModel.findById(data.orderId);
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    order.set({
+      status: OrderStatus.Complete,
+    });
+    await order.save();
   }
 
   private buildOrderCreatedEventData(order: Order, ticket: Ticket): OrderCreatedEvent['data'] {

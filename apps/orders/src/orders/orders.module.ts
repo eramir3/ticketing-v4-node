@@ -12,6 +12,7 @@ import { OrderCreatedPublisher } from '../events/publishers/order-created-publis
 import { OrderCancelledPublisher } from '../events/publishers/order-cancelled-publisher';
 import { TicketingEventsService } from '../events/ticketing-events.service';
 import { ExpirationCompleteListener } from '../events/listeners/expiration-complete-listener';
+import { PaymentCreatedListener } from '../events/listeners/payment-created-listener';
 import { TicketCreatedListener } from '../events/listeners/ticket-created-listener';
 import { TicketUpdatedListener } from '../events/listeners/ticket-updated-listener';
 
@@ -35,6 +36,7 @@ const eventProviders = [
       TicketCreatedListener,
       TicketUpdatedListener,
       ExpirationCompleteListener,
+      PaymentCreatedListener,
     ]
     : []),
 ];
