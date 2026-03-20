@@ -11,6 +11,7 @@ import {
   type JsMsg,
 } from 'nats';
 import { Event } from './types';
+import { Logger } from '@nestjs/common';
 
 export abstract class Listener<T extends Event> {
   abstract subject: T['subject'];
@@ -18,6 +19,7 @@ export abstract class Listener<T extends Event> {
   abstract onMessage(data: T['data'], msg: JsMsg): Promise<void> | void;
   protected client: JetStreamClient;
   protected ackWait = 5 * 1000;
+  protected maxDeliver = 5;
 
   constructor(client: JetStreamClient) {
     this.client = client;
@@ -30,6 +32,7 @@ export abstract class Listener<T extends Event> {
       deliver_policy: DeliverPolicy.All,
       durable_name: this.durableName(),
       filter_subject: this.subject,
+      max_deliver: this.maxDeliver,
       replay_policy: ReplayPolicy.Instant,
     };
   }
@@ -103,11 +106,11 @@ export abstract class Listener<T extends Event> {
   private async processMessages(messages: ConsumerMessages) {
     for await (const msg of messages) {
       try {
-        console.log(`Message received: ${this.subject} / ${this.queueGroupName}`);
+        Logger.log(`Message received: ${this.subject} / ${this.queueGroupName}`);
         const parsedData = this.parseMessage(msg);
         await this.onMessage(parsedData, msg);
       } catch (error) {
-        console.error(
+        Logger.error(
           `Error processing message for subject ${this.subject}`,
           error
         );

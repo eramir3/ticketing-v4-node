@@ -3,6 +3,7 @@ import {
   type JetStreamClient,
 } from 'nats';
 import { Event } from './types';
+import { Logger } from '@nestjs/common';
 
 export abstract class Publisher<T extends Event> {
   abstract subject: T['subject'];
@@ -16,7 +17,7 @@ export abstract class Publisher<T extends Event> {
     return this.client
       .publish(this.subject, JSONCodec<T['data']>().encode(data))
       .then(() => {
-        console.log('Event published to subject', this.subject);
+        Logger.log('Event published to subject', this.subject);
       });
   }
 }
