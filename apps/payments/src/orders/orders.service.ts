@@ -33,7 +33,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      return;
+      throw new NotFoundError('Order not found');
     }
     if (order.status === OrderStatus.Complete) {
       return order;
