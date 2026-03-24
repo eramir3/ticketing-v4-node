@@ -64,3 +64,31 @@ docker compose rm -sf nats
 docker compose up -d nats
 docker compose restart orders expiration tickets
 ````
+
+# NATS CLI
+````
+docker compose --profile tools up -d nats-box
+docker compose exec nats-box nats --server nats:4222 stream ls
+docker compose exec nats-box nats --server nats:4222 stream info ticketing
+docker compose exec nats-box sh
+````
+
+```
+nquery() {
+  stream=$1
+  filter=$2
+
+  max=$(nats --server nats:4222 stream info "$stream" --json | jq -r '.state.messages')
+
+  for i in $(seq 1 "$max"); do
+    nats --server nats:4222 stream get "$stream" "$i" --json
+  done | jq -c "
+    .data
+    | @base64d
+    | fromjson
+    | select($filter)
+  "
+}
+
+nquery ticketing '.price == 150'
+```

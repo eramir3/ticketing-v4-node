@@ -8,6 +8,19 @@ services:
       - "4222:4222"
       - "8222:8222"
 
+  nats-box:
+    image: natsio/nats-box:0.19.2
+    container_name: ticketing-v4-nats-box
+    depends_on:
+      nats:
+        condition: service_started
+    entrypoint: /bin/sh
+    command: -c "while true; do sleep 3600; done"
+    stdin_open: true
+    tty: true
+    profiles:
+      - tools
+
   client-gateway:
     build:
       context: .
