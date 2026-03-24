@@ -99,3 +99,11 @@ nquery() {
 
 nquery ticketing '.price == 150'
 ```
+
+# OBSERVABILITY
+````
+docker compose up -d --build tempo grafana otel-collector
+open http://localhost:3006
+# user: admin
+# password: admin
+````
