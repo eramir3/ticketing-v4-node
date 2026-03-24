@@ -1,3 +1,4 @@
+import { context as otelContext, trace } from '@opentelemetry/api';
 import { Injectable, type LoggerService } from '@nestjs/common';
 import { inspect } from 'node:util';
 import pino, { type Logger as PinoLogger } from 'pino';
@@ -123,14 +124,23 @@ export class PinoLoggerService implements LoggerService {
     );
   }
 
-  private buildPayload(context?: string) {
+  private buildPayload(logContext?: string) {
     const requestContext = getRequestContext();
+    const spanContext = trace.getSpan(otelContext.active())?.spanContext();
 
     return {
-      ...(context ? { context } : {}),
+      ...(logContext ? { context: logContext } : {}),
       ...(requestContext?.requestId ? { request_id: requestContext.requestId } : {}),
-      ...(requestContext?.traceId ? { trace_id: requestContext.traceId } : {}),
-      ...(requestContext?.spanId ? { span_id: requestContext.spanId } : {}),
+      ...(spanContext?.traceId
+        ? { trace_id: spanContext.traceId }
+        : requestContext?.traceId
+          ? { trace_id: requestContext.traceId }
+          : {}),
+      ...(spanContext?.spanId
+        ? { span_id: spanContext.spanId }
+        : requestContext?.spanId
+          ? { span_id: requestContext.spanId }
+          : {}),
     };
   }
 

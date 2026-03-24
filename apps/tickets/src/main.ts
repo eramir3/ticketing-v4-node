@@ -1,8 +1,15 @@
-import { ConfigService } from '@nestjs/config';
-import { appConfig, GLOBAL_PREFIX } from './app';
-import { ENV_KEYS } from './config/env.keys';
+import { startOpenTelemetry } from '../../../libs/common/src/observability/start-open-telemetry';
+
+const SERVICE_NAME = 'tickets-service';
 
 async function bootstrap() {
+  await startOpenTelemetry(SERVICE_NAME);
+  const [{ ConfigService }, { appConfig, GLOBAL_PREFIX }, { ENV_KEYS }] =
+    await Promise.all([
+      import('@nestjs/config'),
+      import('./app'),
+      import('./config/env.keys'),
+    ]);
   const { app, logger } = await appConfig()
   logger.log('Starting up...', 'Bootstrap');
   const configService = app.get(ConfigService);

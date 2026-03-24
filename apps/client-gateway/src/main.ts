@@ -1,12 +1,22 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
-import { RequestValidationError } from '@org/errors';
-import { AppModule } from './app.module';
+import { startOpenTelemetry } from '../../../libs/common/src/observability/start-open-telemetry';
 
 const SERVICE_NAME = 'client-gateway';
 
 async function bootstrap() {
+  await startOpenTelemetry(SERVICE_NAME);
+  const [
+    { ValidationPipe },
+    { NestFactory },
+    { CustomExceptionFilter, configureHttpObservability },
+    { RequestValidationError },
+    { AppModule },
+  ] = await Promise.all([
+    import('@nestjs/common'),
+    import('@nestjs/core'),
+    import('@org/common'),
+    import('@org/errors'),
+    import('./app.module'),
+  ]);
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = configureHttpObservability(app, SERVICE_NAME);
 
