@@ -5,7 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { type TicketingUser } from '@org/common';
+import { buildRequestHeaders, type TicketingUser } from '@org/common';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { ENV_KEYS } from '../config/env.keys';
@@ -29,7 +29,8 @@ export class AuthClient {
     try {
       const { data } = await this.httpClient.post<AuthResponse>(
         '/auth/signup',
-        signUpDto
+        signUpDto,
+        { headers: buildRequestHeaders() }
       );
 
       return data;
@@ -42,7 +43,8 @@ export class AuthClient {
     try {
       const { data } = await this.httpClient.post<AuthResponse>(
         '/auth/signin',
-        signInDto
+        signInDto,
+        { headers: buildRequestHeaders() }
       );
 
       return data;

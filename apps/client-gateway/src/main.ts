@@ -1,11 +1,14 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { CustomExceptionFilter } from '@org/common';
+import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
 import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
+const SERVICE_NAME = 'client-gateway';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = configureHttpObservability(app, SERVICE_NAME);
 
   const globalPrefix = 'api/gateway';
   app.setGlobalPrefix(globalPrefix);
@@ -20,11 +23,13 @@ async function bootstrap() {
 
   const port = process.env.PORT!;
   await app.listen(port);
-  Logger.log(
-    `🚀 Client Gateway is running on: http://localhost:${port}/${globalPrefix}`
+  logger.log(
+    `🚀 Client Gateway is running on: http://localhost:${port}/${globalPrefix}`,
+    'Bootstrap'
   );
-  Logger.log(
-    `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`
+  logger.log(
+    `GraphQL endpoint is available at: http://localhost:${port}/${globalPrefix}/graphql`,
+    'Bootstrap'
   );
 }
 

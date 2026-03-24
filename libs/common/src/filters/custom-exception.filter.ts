@@ -4,6 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { CustomError, type SerializedError } from '@org/errors';
@@ -39,7 +40,11 @@ export class CustomExceptionFilter implements ExceptionFilter {
       });
     }
 
-    console.error(exception);
+    Logger.error(
+      'Unhandled HTTP exception',
+      exception instanceof Error ? exception : undefined,
+      CustomExceptionFilter.name
+    );
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       errors: [{ message: 'Something went wrong' }],
     });

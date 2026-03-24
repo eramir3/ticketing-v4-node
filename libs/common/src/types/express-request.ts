@@ -8,6 +8,7 @@ declare global {
 
     interface Request {
       jwt?: string;
+      requestId?: string;
       session?: SessionPayload | null;
     }
   }

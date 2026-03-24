@@ -1,10 +1,11 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { CustomExceptionFilter } from '@org/common';
+import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
 import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
 export const GLOBAL_PREFIX = 'api';
+export const SERVICE_NAME = 'orders-service';
 
 export function configureApp(app: INestApplication) {
   app.setGlobalPrefix(GLOBAL_PREFIX);
@@ -21,7 +22,8 @@ export function configureApp(app: INestApplication) {
 
 // Configures app instance
 export async function appConfig() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = configureHttpObservability(app, SERVICE_NAME);
   configureApp(app);
-  return { app };
+  return { app, logger };
 }

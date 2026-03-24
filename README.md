@@ -43,12 +43,19 @@ After generating an app/lib run: `nx sync`
 `docker-compose up --build`
 `docker-compose up -d --build auth`
 
+`docker compose build --no-cache` // To build with new dependencies
+
 docker compose down -v
 docker compose up --build
 
 `docker compose stop client-gateway`
 `docker compose rm -fsv client-gateway`
 `docker compose up --build client-gateway`
+
+```
+docker compose rm -fsv auth tickets orders payments expiration client-gateway
+docker compose up -d --build auth tickets orders payments expiration client-gateway
+```
 
 `docker compose stop auth`
 `docker compose rm -fsv auth`

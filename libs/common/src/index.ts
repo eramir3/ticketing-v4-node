@@ -5,6 +5,10 @@ export * from './types/order-status'
 
 export * from './utils/build-auth-headers'
 
+export * from './observability/configure-http-observability'
+export * from './observability/pino-logger.service'
+export * from './observability/request-context'
+
 export * from './plugins/graphql-error-response.plugin'
 
 export * from './decorators/current-user.decorator'

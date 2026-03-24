@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   ExceptionFilter,
+  Logger,
 } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
 import { CustomError, type SerializedError } from '@org/errors';
@@ -53,7 +54,11 @@ export class CustomGraphqlExceptionFilter implements ExceptionFilter {
     }
 
     // 🔴 Unknown errors
-    console.error(exception);
+    Logger.error(
+      'Unhandled GraphQL exception',
+      exception instanceof Error ? exception : undefined,
+      CustomGraphqlExceptionFilter.name
+    );
 
     throw new GraphQLError('Something went wrong', {
       extensions: {

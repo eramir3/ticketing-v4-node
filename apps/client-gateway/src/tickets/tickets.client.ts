@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import {
+  buildRequestHeaders,
   buildAuthHeaders,
   type TicketingUser,
 } from '@org/common';
@@ -47,7 +48,9 @@ export class TicketsClient {
 
   async findAll(): Promise<Ticket[]> {
     try {
-      const { data } = await this.httpClient.get<TicketApiResponse[]>('/tickets');
+      const { data } = await this.httpClient.get<TicketApiResponse[]>('/tickets', {
+        headers: buildRequestHeaders(),
+      });
       return data;
     } catch (error) {
       this.handleError(error);
@@ -56,7 +59,9 @@ export class TicketsClient {
 
   async findOne(id: string): Promise<Ticket> {
     try {
-      const { data } = await this.httpClient.get<TicketApiResponse>(`/tickets/${id}`);
+      const { data } = await this.httpClient.get<TicketApiResponse>(`/tickets/${id}`, {
+        headers: buildRequestHeaders(),
+      });
       return data;
     } catch (error) {
       this.handleError(error);

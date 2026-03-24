@@ -1,13 +1,17 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { CustomExceptionFilter } from '@org/common';
+import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
 import { RequestValidationError } from '@org/errors';
 import { AppModule } from './app.module';
 
+export const GLOBAL_PREFIX = 'api';
+export const SERVICE_NAME = 'auth-service';
+
 // Configures app instance
 export async function appConfig() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = configureHttpObservability(app, SERVICE_NAME);
+  app.setGlobalPrefix(GLOBAL_PREFIX);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -17,5 +21,5 @@ export async function appConfig() {
     })
   );
   app.useGlobalFilters(new CustomExceptionFilter());
-  return { app };
+  return { app, logger };
 }
