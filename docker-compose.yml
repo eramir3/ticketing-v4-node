@@ -21,21 +21,25 @@ services:
     profiles:
       - tools
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: ticketing-v4-otel-collector
-    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+  alloy:
+    image: grafana/alloy:latest
+    container_name: ticketing-v4-alloy
+    command: ["run", "/etc/alloy/config.alloy", "--server.http.listen-addr=0.0.0.0:12345"]
     depends_on:
       tempo:
         condition: service_started
+      loki:
+        condition: service_started
     volumes:
-      - ./observability/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "4317:4317"
       - "4318:4318"
+      - "12345:12345"
 
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.9.0
     container_name: ticketing-v4-tempo
     command: ["-config.file=/etc/tempo/config.yaml"]
     volumes:
@@ -44,10 +48,22 @@ services:
     ports:
       - "3200:3200"
 
+  loki:
+    image: grafana/loki:latest
+    container_name: ticketing-v4-loki
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./observability/loki/config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+
   grafana:
     image: grafana/grafana:latest
     container_name: ticketing-v4-grafana
     depends_on:
+      loki:
+        condition: service_started
       tempo:
         condition: service_started
     environment:
@@ -68,7 +84,7 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       auth:
         condition: service_started
@@ -85,7 +101,7 @@ services:
       ORDERS_SERVICE: http://orders:3003/api
       PAYMENTS_SERVICE: http://payments:3005/api
       TICKETS_SERVICE: http://tickets:3002/api
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve client-gateway"
     volumes:
       - .:/app
@@ -102,7 +118,7 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       auth-mongo:
         condition: service_healthy
@@ -110,7 +126,7 @@ services:
       - ./apps/auth/.env
     environment:
       MONGO_URI: mongodb://auth-mongo:27017/auth
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve auth"
     volumes:
       - .:/app
@@ -127,7 +143,7 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       tickets-mongo:
         condition: service_healthy
@@ -135,7 +151,7 @@ services:
       - ./apps/tickets/.env
     environment:
       MONGO_URI: mongodb://tickets-mongo:27017/tickets
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve tickets"
     volumes:
       - .:/app
@@ -152,7 +168,7 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       orders-mongo:
         condition: service_healthy
@@ -160,7 +176,7 @@ services:
       - ./apps/orders/.env
     environment:
       MONGO_URI: mongodb://orders-mongo:27017/orders
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve orders"
     volumes:
       - .:/app
@@ -177,14 +193,14 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       redis:
         condition: service_started
     env_file:
       - ./apps/expiration/.env
     environment:
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve expiration"
     volumes:
       - .:/app
@@ -201,7 +217,7 @@ services:
     depends_on:
       nats:
         condition: service_started
-      otel-collector:
+      alloy:
         condition: service_started
       payments-mongo:
         condition: service_healthy
@@ -209,7 +225,7 @@ services:
       - ./apps/payments/.env
     environment:
       MONGO_URI: mongodb://payments-mongo:27017/payments
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy:4318/v1/traces
     command: sh -c "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx daemon --start && npm exec -- nx serve payments"
     volumes:
       - .:/app
@@ -286,6 +302,7 @@ services:
 volumes:
   auth-mongo-data:
   grafana-data:
+  loki-data:
   orders-mongo-data:
   payments-mongo-data:
   redis-data:
