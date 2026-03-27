@@ -8,6 +8,7 @@ export * from './utils/build-auth-headers'
 export * from './observability/configure-http-observability'
 export * from './observability/pino-logger.service'
 export * from './observability/request-context'
+export * from './observability/trace-context-propagation'
 
 export * from './plugins/graphql-error-response.plugin'
 

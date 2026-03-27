@@ -4,6 +4,7 @@ import {
   NatsError,
   ReplayPolicy,
   nanos,
+  type MsgHdrs,
   type Consumer,
   type ConsumerConfig,
   type ConsumerMessages,
@@ -12,6 +13,26 @@ import {
 } from 'nats';
 import { Event } from './types';
 import { Logger } from '@nestjs/common';
+import {
+  ROOT_CONTEXT,
+  SpanKind,
+  SpanStatusCode,
+  context as otelContext,
+  propagation,
+  trace,
+  type TextMapGetter,
+} from '@opentelemetry/api';
+
+const tracer = trace.getTracer('ticketing-transport');
+const natsHeaderGetter: TextMapGetter<MsgHdrs> = {
+  get(carrier, key) {
+    const value = carrier.get(key);
+    return value ? [value] : [];
+  },
+  keys(carrier) {
+    return carrier.keys();
+  },
+};
 
 export abstract class Listener<T extends Event> {
   abstract subject: T['subject'];
@@ -105,15 +126,41 @@ export abstract class Listener<T extends Event> {
 
   private async processMessages(messages: ConsumerMessages) {
     for await (const msg of messages) {
+      const parentContext = msg.headers
+        ? propagation.extract(ROOT_CONTEXT, msg.headers, natsHeaderGetter)
+        : ROOT_CONTEXT;
+      const span = tracer.startSpan(
+        `nats process ${this.subject}`,
+        {
+          kind: SpanKind.CONSUMER,
+          attributes: {
+            'messaging.system': 'nats',
+            'messaging.destination.name': this.subject,
+            'messaging.operation': 'process',
+          },
+        },
+        parentContext
+      );
+
       try {
-        Logger.log(`Message received: ${this.subject} / ${this.queueGroupName}`);
-        const parsedData = this.parseMessage(msg);
-        await this.onMessage(parsedData, msg);
+        await otelContext.with(trace.setSpan(parentContext, span), async () => {
+          Logger.log(`Message received: ${this.subject} / ${this.queueGroupName}`);
+          const parsedData = this.parseMessage(msg);
+          await this.onMessage(parsedData, msg);
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
       } catch (error) {
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : 'failed to process event',
+        });
         Logger.error(
           `Error processing message for subject ${this.subject}`,
           error
         );
+      } finally {
+        span.end();
       }
     }
   }

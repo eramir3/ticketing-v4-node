@@ -1,6 +1,12 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import {
+  SpanKind,
+  SpanStatusCode,
+  context as otelContext,
+  trace,
+} from '@opentelemetry/api';
 import { type JetStreamClient, type JsMsg } from 'nats';
 import {
   Listener,
@@ -9,12 +15,15 @@ import {
   Subjects,
 } from '@org/transport';
 import { TicketingEventsService } from '../ticketing-events.service';
+import { injectTraceCarrier } from '@org/common';
 import {
   EXPIRATION_JOB_NAME,
   EXPIRATION_QUEUE_NAME,
   type ExpirationJobData,
 } from '../../queues/expiration-queue';
 import { queueGroupName } from './queue-group-name';
+
+const tracer = trace.getTracer('expiration-worker');
 
 @Injectable()
 export class OrderCreatedListener
@@ -40,18 +49,42 @@ export class OrderCreatedListener
 
   async onMessage(data: OrderCreatedEvent['data'], msg: JsMsg) {
     const delay = Math.max(0, new Date(data.expiresAt).getTime() - Date.now());
-
-    await this.expirationQueue.add(
-      EXPIRATION_JOB_NAME,
-      {
-        orderId: data.id,
+    const span = tracer.startSpan(`bullmq enqueue ${EXPIRATION_QUEUE_NAME}`, {
+      kind: SpanKind.PRODUCER,
+      attributes: {
+        'messaging.system': 'bullmq',
+        'messaging.destination.name': EXPIRATION_QUEUE_NAME,
+        'messaging.operation': 'publish',
       },
-      {
-        delay,
-        jobId: data.id,
-        removeOnComplete: true,
+    });
+
+    await otelContext.with(trace.setSpan(otelContext.active(), span), async () => {
+      try {
+        await this.expirationQueue.add(
+          EXPIRATION_JOB_NAME,
+          {
+            orderId: data.id,
+            traceCarrier: injectTraceCarrier(),
+          },
+          {
+            delay,
+            jobId: data.id,
+            removeOnComplete: true,
+          }
+        );
+
+        span.setStatus({ code: SpanStatusCode.OK });
+      } catch (error) {
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : 'failed to enqueue job',
+        });
+        throw error;
+      } finally {
+        span.end();
       }
-    );
+    });
 
     msg.ack();
   }
