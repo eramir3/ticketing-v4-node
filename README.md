@@ -102,11 +102,12 @@ nquery ticketing '.price == 150'
 
 # OBSERVABILITY
 ````
-docker compose up -d --build --remove-orphans alloy loki tempo grafana
+docker compose up -d --build --remove-orphans alloy loki tempo prometheus grafana
 open http://localhost:3006
 # user: admin
 # password: admin
 open http://localhost:12345
+open http://localhost:9090
 ````
 
 If Loki is enabled after containers have already been running for a while, Alloy may replay stale Docker logs and Loki can reject some of that old backlog. Recreate the services you want to observe once so Alloy starts from fresh container logs:
