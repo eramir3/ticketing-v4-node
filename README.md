@@ -1,11 +1,15 @@
-# CREATE NX PROJECT 
+# CREATE NX PROJECT
+
 `npx create-nx-workspace@latest ticketing-v4`
 
-# INSTAL NEST in NX 
+# INSTAL NEST in NX
+
 `npm install --save-dev @nx/nest`
 
 # GENERATE APP
+
 ## Apps
+
 `nx generate @nx/nest:app --name=client-gateway --directory=apps/client-gateway`
 `nx generate @nx/nest:app --name=auth --directory=apps/auth`
 `nx generate @nx/nest:app --name=tickets --directory=apps/tickets`
@@ -14,6 +18,7 @@
 `nx generate @nx/nest:app --name=payments --directory=apps/payments`
 
 ## libs
+
 `nx generate @nx/node:library --name=common --directory=libs/common`
 `nx generate @nx/node:library --name=errors --directory=libs/errors`
 `nx generate @nx/node:library --name=contracts --directory=libs/contracts`
@@ -22,9 +27,11 @@
 After generating an app/lib run: `nx sync`
 
 # CREATE NEST MODULE WITH RESOURCE
+
 `nest g resource users`
 
 # MONGODB
+
 `docker exec -it ticketing-auth-mongo mongosh`
 `docker exec -it ticketing-v4-tickets-mongo-js mongosh`
 `docker exec -it ticketing-v4-orders-mongo-js mongosh`
@@ -40,6 +47,7 @@ After generating an app/lib run: `nx sync`
 `db.tickets.countDocuments({price: 10})`
 
 # REBUILD DOCKER-COMPOSE IMAGE
+
 `docker-compose up --build`
 `docker-compose up -d --build auth`
 
@@ -66,19 +74,21 @@ docker compose up -d --build auth tickets orders payments expiration client-gate
 `docker compose up --build tickets`
 
 # RESTART NATS
-````
+
+```
 docker compose rm -sf nats
 docker compose up -d nats
 docker compose restart orders expiration tickets
-````
+```
 
 # NATS CLI
-````
+
+```
 docker compose --profile tools up -d nats-box
 docker compose exec nats-box nats --server nats:4222 stream ls
 docker compose exec nats-box nats --server nats:4222 stream info ticketing
 docker compose exec nats-box sh
-````
+```
 
 ```
 nquery() {
@@ -101,23 +111,24 @@ nquery ticketing '.price == 150'
 ```
 
 # OBSERVABILITY
-````
+
+```
 docker compose up -d --build --remove-orphans alloy loki tempo prometheus grafana
-open http://localhost:3006
+open http://localhost:3006 // grafana
 # user: admin
 # password: admin
-open http://localhost:12345
-open http://localhost:9090
-````
+open http://localhost:12345 // allow
+open http://localhost:9090 // prometheus
+```
 
 If Loki is enabled after containers have already been running for a while, Alloy may replay stale Docker logs and Loki can reject some of that old backlog. Recreate the services you want to observe once so Alloy starts from fresh container logs:
 
-````
+```
 docker compose up -d --force-recreate auth tickets orders payments expiration client-gateway
-````
+```
 
 If you add new Node dependencies for the app services, renew the anonymous `node_modules` volumes when recreating them:
 
-````
+```
 docker compose up -d --build --force-recreate --renew-anon-volumes auth tickets orders payments expiration client-gateway prometheus
-````
+```
