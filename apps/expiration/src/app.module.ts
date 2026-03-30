@@ -10,6 +10,7 @@ import { ENV_KEYS } from './config/env.keys';
 import { validateEnv } from './config/env.validation';
 import { ExpirationProcessor } from './queues/expiration.processor';
 import { EXPIRATION_QUEUE_NAME } from './queues/expiration-queue';
+import { HealthModule } from './health/health.module';
 
 const enableExpirationWorkers = process.env.NODE_ENV !== 'test';
 const eventImports = enableExpirationWorkers
@@ -51,6 +52,7 @@ const eventProviders = enableExpirationWorkers
       validate: validateEnv,
     }),
     ...eventImports,
+    HealthModule,
   ],
   providers: [...eventProviders],
 })
