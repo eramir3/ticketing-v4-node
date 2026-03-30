@@ -6,6 +6,7 @@ import { validateEnv } from './config/env.validation';
 import { ENV_KEYS } from './config/env.keys';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaymentsModule } from './payments/payments.module';
     }),
     OrdersModule,
     PaymentsModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

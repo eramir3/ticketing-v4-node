@@ -1,4 +1,8 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+  INestApplication,
+  RequestMethod,
+  ValidationPipe,
+} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
 import { RequestValidationError } from '@org/errors';
@@ -8,7 +12,12 @@ export const GLOBAL_PREFIX = 'api';
 export const SERVICE_NAME = 'payments-service';
 
 export function configureApp(app: INestApplication) {
-  app.setGlobalPrefix(GLOBAL_PREFIX);
+  app.setGlobalPrefix(GLOBAL_PREFIX, {
+    exclude: [
+      { path: 'health', method: RequestMethod.GET },
+      { path: 'ready', method: RequestMethod.GET },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
