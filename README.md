@@ -122,14 +122,14 @@ open http://localhost:9090 // prometheus
 open http://localhost:9115 // blackbox exporter
 ```
 
-The client gateway now exposes unprefixed probe endpoints:
+The client gateway and auth service now expose unprefixed probe endpoints:
 
 ```
 GET /health
 GET /ready
 ```
 
-Prometheus scrapes those through `blackbox-exporter` with the `client-gateway-health` and `client-gateway-ready` jobs.
+Prometheus scrapes those through `blackbox-exporter` with the `client-gateway-health`, `client-gateway-ready`, `auth-health`, and `auth-ready` jobs.
 
 If Loki is enabled after containers have already been running for a while, Alloy may replay stale Docker logs and Loki can reject some of that old backlog. Recreate the services you want to observe once so Alloy starts from fresh container logs:
 

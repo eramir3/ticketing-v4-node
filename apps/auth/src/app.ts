@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { CustomExceptionFilter, configureHttpObservability } from '@org/common';
 import { RequestValidationError } from '@org/errors';
@@ -11,7 +11,12 @@ export const SERVICE_NAME = 'auth-service';
 export async function appConfig() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = configureHttpObservability(app, SERVICE_NAME);
-  app.setGlobalPrefix(GLOBAL_PREFIX);
+  app.setGlobalPrefix(GLOBAL_PREFIX, {
+    exclude: [
+      { path: 'health', method: RequestMethod.GET },
+      { path: 'ready', method: RequestMethod.GET },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
