@@ -113,13 +113,23 @@ nquery ticketing '.price == 150'
 # OBSERVABILITY
 
 ```
-docker compose up -d --build --remove-orphans alloy loki tempo prometheus grafana
+docker compose up -d --build --remove-orphans alloy loki tempo blackbox-exporter prometheus grafana
 open http://localhost:3006 // grafana
 # user: admin
 # password: admin
 open http://localhost:12345 // allow
 open http://localhost:9090 // prometheus
+open http://localhost:9115 // blackbox exporter
 ```
+
+The client gateway now exposes unprefixed probe endpoints:
+
+```
+GET /health
+GET /ready
+```
+
+Prometheus scrapes those through `blackbox-exporter` with the `client-gateway-health` and `client-gateway-ready` jobs.
 
 If Loki is enabled after containers have already been running for a while, Alloy may replay stale Docker logs and Loki can reject some of that old backlog. Recreate the services you want to observe once so Alloy starts from fresh container logs:
 

@@ -13,6 +13,11 @@ scrape_configs:
       - targets:
           - alloy:12345
 
+  - job_name: blackbox-exporter
+    static_configs:
+      - targets:
+          - blackbox-exporter:9115
+
   - job_name: tempo
     metrics_path: /metrics
     static_configs:
@@ -41,3 +46,35 @@ scrape_configs:
           - orders:3003
           - expiration:3004
           - payments:3005
+
+  - job_name: client-gateway-health
+    metrics_path: /probe
+    params:
+      module:
+        - http_2xx
+    static_configs:
+      - targets:
+          - http://client-gateway:3000/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: client-gateway-ready
+    metrics_path: /probe
+    params:
+      module:
+        - http_2xx
+    static_configs:
+      - targets:
+          - http://client-gateway:3000/ready
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

@@ -5,7 +5,7 @@ const SERVICE_NAME = 'client-gateway';
 async function bootstrap() {
   await startOpenTelemetry(SERVICE_NAME);
   const [
-    { ValidationPipe },
+    { RequestMethod, ValidationPipe },
     { NestFactory },
     { CustomExceptionFilter, configureHttpObservability },
     { RequestValidationError },
@@ -21,7 +21,12 @@ async function bootstrap() {
   const logger = configureHttpObservability(app, SERVICE_NAME);
 
   const globalPrefix = 'api/gateway';
-  app.setGlobalPrefix(globalPrefix);
+  app.setGlobalPrefix(globalPrefix, {
+    exclude: [
+      { path: 'health', method: RequestMethod.GET },
+      { path: 'ready', method: RequestMethod.GET },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
