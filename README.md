@@ -115,3 +115,9 @@ If Loki is enabled after containers have already been running for a while, Alloy
 ````
 docker compose up -d --force-recreate auth tickets orders payments expiration client-gateway
 ````
+
+If you add new Node dependencies for the app services, renew the anonymous `node_modules` volumes when recreating them:
+
+````
+docker compose up -d --build --force-recreate --renew-anon-volumes auth tickets orders payments expiration client-gateway prometheus
+````
