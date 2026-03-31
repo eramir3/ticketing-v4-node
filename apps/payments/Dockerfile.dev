@@ -18,4 +18,4 @@ COPY libs/errors libs/errors
 COPY libs/transport libs/transport
 
 WORKDIR /app/apps/payments
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "cd /app && npm exec -- nx run-many -t build -p common,errors,transport && npm exec -- nx serve payments"]
