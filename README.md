@@ -146,3 +146,32 @@ docker compose up -d --build --force-recreate --renew-anon-volumes auth tickets 
 {compose_service="auth"} | json | request_id="1a29d312-3b5d-4f71-adfb-f66af46bf026"
 
 { trace:id = "7b7bf091c8f7ddce25b0a52c763afb36" }
+
+# MINIKUBE START
+
+`minikube start --driver=hyperkit --cpus=3 --memory=6144 --disk-size=50g && minikube addons enable ingress`
+
+`minikube addons list`
+
+`kubectl config current-context`
+
+`kubectl config get-contexts`
+
+`kubectl config use-context <context-name>`
+
+## Build docker images in minikube
+
+`minikube image build -t <image-name> -f apps/auth/Dockerfile.dev .`
+`minikube image build -t <image-name> -f apps/auth/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-client-gateway-js -f apps/client-gateway/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-auth-js -f apps/auth/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-tickets-js -f apps/tickets/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-orders-js -f apps/orders/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-payments-js -f apps/payments/Dockerfile.dev . --alsologtostderr -v=1`
+
+`minikube image build -t ticketing-v4-expiration-js -f apps/expiration/Dockerfile.dev . --alsologtostderr -v=1`

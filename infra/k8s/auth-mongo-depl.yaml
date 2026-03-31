@@ -14,7 +14,19 @@ spec:
     spec:
       containers:
         - name: auth-mongo
-          image: mongo
+          image: mongo:7.0
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: auth
 ---
 apiVersion: v1
 kind: Service
