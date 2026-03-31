@@ -295,6 +295,7 @@ minikube addons list
 kubectl config current-context
 kubectl config get-contexts
 kubectl config use-context <context-name>
+kubectl apply -f infra/k8s/
 ```
 
 ---
