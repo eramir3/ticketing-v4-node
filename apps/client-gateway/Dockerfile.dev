@@ -16,4 +16,4 @@ COPY libs/common libs/common
 COPY libs/errors libs/errors
 
 WORKDIR /app/apps/client-gateway
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "cd /app && npm exec -- nx run-many -t build -p common,errors && npm exec -- nx serve client-gateway"]

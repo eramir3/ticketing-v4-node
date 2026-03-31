@@ -86,7 +86,7 @@
       "docker": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "minikube image build -t ticketing-v3-tickets -f apps/tickets/Dockerfile.dev . --alsologtostderr -v=1"
+          "command": "minikube image build -t ticketing-v4-tickets-js:latest -f apps/tickets/Dockerfile.dev . --alsologtostderr -v=1"
         }
       },
       "test": {
