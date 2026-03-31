@@ -142,3 +142,7 @@ If you add new Node dependencies for the app services, renew the anonymous `node
 ```
 docker compose up -d --build --force-recreate --renew-anon-volumes auth tickets orders payments expiration client-gateway prometheus
 ```
+
+{compose_service="auth"} | json | request_id="1a29d312-3b5d-4f71-adfb-f66af46bf026"
+
+{ trace:id = "7b7bf091c8f7ddce25b0a52c763afb36" }
